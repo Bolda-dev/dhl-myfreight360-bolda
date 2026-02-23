@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { mockShipments, CITY_FLAGS, type Shipment, type Remark } from "@/data/mockShipments";
 import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Sailboat, TramFront, CircleDot } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import ShipmentDetailDialog from "@/components/ShipmentDetailDialog";
+import ShipmentDetailSidebar from "@/components/ShipmentDetailSidebar";
 import InvoicesDialog from "@/components/InvoicesDialog";
 import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
 import TagsDialog from "@/components/TagsDialog";
@@ -68,10 +68,10 @@ const createColumns = (): ColumnDef[] => [
   },
   {
     id: "fileNumber", label: "File No.", align: "left", minWidth: 80, defaultWidth: 110,
-    render: (s, h) => (
-      <button onClick={() => h.openDetail(s)} className="text-primary font-medium hover:underline text-xs">
+    render: (s) => (
+      <span className="text-primary font-medium text-xs">
         <TruncatedCell text={s.fileNumber} maxW={95} />
-      </button>
+      </span>
     ),
   },
   {
@@ -226,11 +226,8 @@ const createColumns = (): ColumnDef[] => [
   },
 ];
 
-const BATCH_SIZE = 20;
-
 const ShipmentTable = () => {
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
-  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [invoiceShipment, setInvoiceShipment] = useState<Shipment | null>(null);
@@ -245,23 +242,7 @@ const ShipmentTable = () => {
     return w;
   });
 
-  // Scroll container ref for infinite scroll
   const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const node = scrollRef.current;
-    if (!node) return;
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = node;
-      if (scrollHeight - scrollTop - clientHeight < 100) {
-        setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, shipments.length));
-      }
-    };
-    node.addEventListener("scroll", handleScroll);
-    return () => node.removeEventListener("scroll", handleScroll);
-  }, [shipments.length]);
-
-  const visibleShipments = shipments.slice(0, visibleCount);
 
   // Drag reorder
   const [draggedCol, setDraggedCol] = useState<string | null>(null);
@@ -396,10 +377,11 @@ const ShipmentTable = () => {
             </tr>
           </thead>
           <tbody>
-            {visibleShipments.map((s) => (
+            {shipments.map((s) => (
               <tr
                 key={s.id}
-                className={`border-b last:border-0 hover:bg-table-row-hover transition-colors ${draggedCol ? "pointer-events-none" : ""}`}
+                className={`border-b last:border-0 hover:bg-table-row-hover transition-colors cursor-pointer ${draggedCol ? "pointer-events-none" : ""}`}
+                onClick={() => { setSelectedShipment(s); setDetailOpen(true); }}
               >
                 {columns.map((col) => (
                   <td
@@ -416,16 +398,13 @@ const ShipmentTable = () => {
         </table>
       </div>
 
-      {/* Status bar - sticky bottom */}
+      {/* Status bar */}
       <div className="flex items-center justify-between px-4 py-1.5 border-t text-xs text-muted-foreground shrink-0">
-        <span>Showing {Math.min(visibleCount, shipments.length)} of {shipments.length}</span>
-        {visibleCount < shipments.length && (
-          <span className="text-primary animate-pulse text-[11px]">Scroll for more…</span>
-        )}
+        <span>{shipments.length} records</span>
       </div>
 
-      {/* Dialogs */}
-      <ShipmentDetailDialog shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
+      {/* Sidebar detail */}
+      <ShipmentDetailSidebar shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
       {invoiceShipment && (
         <InvoicesDialog invoices={invoiceShipment.invoices} houseBill={invoiceShipment.houseBill} open={!!invoiceShipment} onClose={() => setInvoiceShipment(null)} />
       )}
