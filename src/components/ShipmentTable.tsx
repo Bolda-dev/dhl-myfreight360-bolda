@@ -348,7 +348,7 @@ const ShipmentTable = () => {
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="text-xs" style={{ minWidth: "100%" }}>
+        <table className="text-[13px]" style={{ minWidth: "100%" }}>
           <thead>
             <tr className="bg-table-header border-b">
               {columns.map((col) => (
@@ -362,9 +362,9 @@ const ShipmentTable = () => {
                   className={`relative group font-semibold text-foreground whitespace-nowrap select-none ${
                     col.align === "center" ? "text-center" : "text-left"
                   } ${dragOverCol === col.id ? "bg-accent" : ""} ${draggedCol === col.id ? "opacity-40" : ""}`}
-                  style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "8px 6px" }}
+                  style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "10px 10px" }}
                 >
-                  <span className="cursor-grab active:cursor-grabbing text-[11px]">{col.label}</span>
+                  <span className="cursor-grab active:cursor-grabbing text-xs">{col.label}</span>
                   <div
                     onMouseDown={(e) => handleResizeStart(e, col.id)}
                     className="absolute right-0 top-0 bottom-0 w-[3px] cursor-col-resize opacity-0 group-hover:opacity-100 bg-primary/30 hover:bg-primary/50 transition-opacity"
@@ -384,7 +384,7 @@ const ShipmentTable = () => {
                   <td
                     key={col.id}
                     className={`${col.align === "center" ? "text-center" : ""} ${draggedCol === col.id ? "opacity-40" : ""}`}
-                    style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "6px 6px" }}
+                    style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "10px 10px" }}
                   >
                     {col.render(s, helpers)}
                   </td>
