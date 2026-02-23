@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { mockShipments, CITY_FLAGS, type Shipment, type Remark } from "@/data/mockShipments";
 import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Sailboat, TramFront, CircleDot } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -245,23 +245,20 @@ const ShipmentTable = () => {
     return w;
   });
 
-  // Infinite scroll sentinel
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
+  // Scroll container ref for infinite scroll
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  const setupObserver = useCallback((node: HTMLDivElement | null) => {
-    if (observerRef.current) observerRef.current.disconnect();
+  useEffect(() => {
+    const node = scrollRef.current;
     if (!node) return;
-    sentinelRef.current = node;
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, shipments.length));
-        }
-      },
-      { threshold: 0.1 }
-    );
-    observerRef.current.observe(node);
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = node;
+      if (scrollHeight - scrollTop - clientHeight < 100) {
+        setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, shipments.length));
+      }
+    };
+    node.addEventListener("scroll", handleScroll);
+    return () => node.removeEventListener("scroll", handleScroll);
   }, [shipments.length]);
 
   const visibleShipments = shipments.slice(0, visibleCount);
@@ -360,9 +357,9 @@ const ShipmentTable = () => {
   };
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm">
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b">
+    <div className="bg-card rounded-lg border shadow-sm flex flex-col h-full overflow-hidden">
+      {/* Toolbar - sticky */}
+      <div className="flex items-center justify-between px-4 py-2 border-b shrink-0">
         <span className="text-xs text-muted-foreground font-medium">{shipments.length} records</span>
         <div className="flex items-center gap-2">
           <button className="px-2.5 py-1 text-xs font-medium border rounded hover:bg-accent transition-colors text-foreground">Export</button>
@@ -370,10 +367,10 @@ const ShipmentTable = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
+      {/* Scrollable table area */}
+      <div className="flex-1 min-h-0 overflow-auto" ref={scrollRef}>
         <table className="text-[13px]" style={{ minWidth: "100%" }}>
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="bg-table-header border-b">
               {columns.map((col) => (
                 <th
@@ -419,16 +416,13 @@ const ShipmentTable = () => {
         </table>
       </div>
 
-      {/* Infinite scroll sentinel + status bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-t text-xs text-muted-foreground">
-        <span>Showing {visibleCount < shipments.length ? visibleCount : shipments.length} of {shipments.length}</span>
+      {/* Status bar - sticky bottom */}
+      <div className="flex items-center justify-between px-4 py-1.5 border-t text-xs text-muted-foreground shrink-0">
+        <span>Showing {Math.min(visibleCount, shipments.length)} of {shipments.length}</span>
         {visibleCount < shipments.length && (
           <span className="text-primary animate-pulse text-[11px]">Scroll for more…</span>
         )}
       </div>
-      {visibleCount < shipments.length && (
-        <div ref={setupObserver} className="h-1" />
-      )}
 
       {/* Dialogs */}
       <ShipmentDetailDialog shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
