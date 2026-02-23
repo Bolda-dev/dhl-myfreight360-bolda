@@ -13,7 +13,7 @@ const Index = () => {
         <ShipmentTable />
       </main>
       <footer className="border-t px-6 py-3 text-xs text-muted-foreground">
-        © 2025 MyFreight360. All rights reserved.
+        © 2026 MyFreight360. All rights reserved.
       </footer>
     </div>
   );

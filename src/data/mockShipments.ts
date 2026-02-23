@@ -27,6 +27,16 @@ export interface Shipment {
   invoices: Invoice[];
   containers: Container[];
   statusSteps: StatusStep[];
+  events: ShipmentEvent[];
+}
+
+export interface ShipmentEvent {
+  title: string;
+  type: "PICKUP" | "DEPARTURE" | "ARRIVAL" | "CUSTOMS" | "DELIVERY" | "IN_TRANSIT";
+  description: string;
+  location: string;
+  date: string;
+  completed: boolean;
 }
 
 export interface Invoice {
@@ -92,6 +102,13 @@ export const mockShipments: Shipment[] = [
       { label: "Arrived", completed: true, active: false, date: "Sep 21, 05:30 PM", location: "TLV Airport", description: "Flight arrived" },
       { label: "Delivered", completed: true, active: false, date: "Sep 21, 07:00 PM", location: "Tel Aviv", description: "Delivered to consignee" },
     ],
+    events: [
+      { title: "Cargo Picked Up", type: "PICKUP", description: "Cargo collected from shipper premises", location: "Hong Kong", date: "Sep 19, 12:05 PM", completed: true },
+      { title: "Departed Origin", type: "DEPARTURE", description: "Flight departed from Hong Kong", location: "Hong Kong", date: "Sep 21, 06:45 AM", completed: true },
+      { title: "Arrived at Destination", type: "ARRIVAL", description: "Flight arrived at Tel Aviv", location: "Tel Aviv", date: "Sep 21, 05:30 PM", completed: true },
+      { title: "Customs Cleared", type: "CUSTOMS", description: "Shipment cleared customs", location: "Tel Aviv", date: "Sep 21, 06:00 PM", completed: true },
+      { title: "Delivered", type: "DELIVERY", description: "Delivered to consignee", location: "Tel Aviv", date: "Sep 21, 07:00 PM", completed: true },
+    ],
   },
   {
     id: "2",
@@ -130,6 +147,12 @@ export const mockShipments: Shipment[] = [
       { label: "Departed", completed: true, active: false },
       { label: "Arrived", completed: true, active: false },
       { label: "Delivered", completed: true, active: false },
+    ],
+    events: [
+      { title: "Cargo Picked Up", type: "PICKUP", description: "Cargo collected from warehouse", location: "Tel Aviv", date: "Sep 22, 10:30 AM", completed: true },
+      { title: "Departed Origin", type: "DEPARTURE", description: "Flight departed from Tel Aviv", location: "Tel Aviv", date: "Sep 22, 10:30 AM", completed: true },
+      { title: "Arrived at Destination", type: "ARRIVAL", description: "Flight arrived at Los Angeles", location: "Los Angeles", date: "Sep 23, 02:15 AM", completed: true },
+      { title: "Delivered", type: "DELIVERY", description: "Delivered to consignee", location: "Los Angeles", date: "Sep 23, 10:00 AM", completed: true },
     ],
   },
   {
@@ -174,6 +197,10 @@ export const mockShipments: Shipment[] = [
       { label: "Departed", completed: false, active: false },
       { label: "Arrived", completed: false, active: false },
       { label: "Delivered", completed: false, active: false },
+    ],
+    events: [
+      { title: "Booking Confirmed", type: "PICKUP", description: "Ocean freight booking confirmed", location: "Hamburg", date: "Sep 19, 11:15 AM", completed: true },
+      { title: "Pickup Scheduled", type: "PICKUP", description: "Container pickup scheduled at port", location: "Hamburg Port", date: "Sep 23, 02:30 PM", completed: false },
     ],
   },
   {
@@ -221,6 +248,12 @@ export const mockShipments: Shipment[] = [
       { label: "Arrived", completed: false, active: false },
       { label: "Delivered", completed: false, active: false },
     ],
+    events: [
+      { title: "Cargo Picked Up", type: "PICKUP", description: "Cargo loaded onto rail containers", location: "Beijing", date: "Sep 18, 03:00 PM", completed: true },
+      { title: "Departed Origin", type: "DEPARTURE", description: "Train departed Beijing terminal", location: "Beijing Rail Terminal", date: "Sep 19, 07:15 AM", completed: true },
+      { title: "Border Crossing", type: "IN_TRANSIT", description: "Crossed China-Kazakhstan border", location: "Alashankou", date: "Sep 22, 11:00 AM", completed: true },
+      { title: "In Transit", type: "IN_TRANSIT", description: "Train in transit through Central Asia", location: "Kazakhstan", date: "Sep 25, 08:00 AM", completed: false },
+    ],
   },
   {
     id: "5",
@@ -259,6 +292,13 @@ export const mockShipments: Shipment[] = [
       { label: "Departed", completed: true, active: false },
       { label: "Arrived", completed: true, active: false },
       { label: "Delivered", completed: true, active: false, date: "Sep 18, 07:00 PM", location: "London", description: "Delivered to consignee" },
+    ],
+    events: [
+      { title: "Cargo Picked Up", type: "PICKUP", description: "Cargo collected from shipper", location: "New York", date: "Sep 17, 09:00 AM", completed: true },
+      { title: "Departed Origin", type: "DEPARTURE", description: "Flight departed JFK", location: "New York", date: "Sep 18, 01:45 PM", completed: true },
+      { title: "Arrived at Destination", type: "ARRIVAL", description: "Flight arrived at Heathrow", location: "London", date: "Sep 18, 05:15 PM", completed: true },
+      { title: "Customs Cleared", type: "CUSTOMS", description: "UK customs clearance completed", location: "London", date: "Sep 18, 06:30 PM", completed: true },
+      { title: "Delivered", type: "DELIVERY", description: "Delivered to consignee", location: "London", date: "Sep 18, 07:00 PM", completed: true },
     ],
   },
 ];

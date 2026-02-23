@@ -15,7 +15,7 @@ const Navbar = () => {
   return (
     <header className="h-14 border-b border-navbar-border bg-card flex items-center px-6 justify-between shrink-0">
       <div className="flex items-center gap-3">
-        <img src={dhlLogo} alt="DHL" className="h-7 object-contain" />
+        <img src={dhlLogo} alt="DHL" className="h-5 object-contain" />
         <span className="text-base font-semibold text-foreground tracking-tight">
           MyFreight360
         </span>
