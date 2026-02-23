@@ -117,10 +117,11 @@ const ShipmentTable = () => {
 
     const onMove = (ev: MouseEvent) => {
       if (!resizing.current) return;
-      const diff = ev.clientX - resizing.current.startX;
-      const col = columns.find((c) => c.id === resizing.current!.colId);
-      const newW = Math.max(col?.minWidth ?? 50, resizing.current.startWidth + diff);
-      setColumnWidths((prev) => ({ ...prev, [resizing.current!.colId]: newW }));
+      const { colId: activeColId, startX, startWidth } = resizing.current;
+      const diff = ev.clientX - startX;
+      const col = columns.find((c) => c.id === activeColId);
+      const newW = Math.max(col?.minWidth ?? 50, startWidth + diff);
+      setColumnWidths((prev) => ({ ...prev, [activeColId]: newW }));
     };
     const onUp = () => {
       resizing.current = null;
