@@ -381,7 +381,7 @@ const ShipmentTable = () => {
               <tr
                 key={s.id}
                 className={`border-b last:border-0 hover:bg-table-row-hover transition-colors cursor-pointer ${draggedCol ? "pointer-events-none" : ""}`}
-                onClick={() => { setSelectedShipment(s); setDetailOpen(true); }}
+                onClick={(e) => { if ((e.target as HTMLElement).closest('button')) return; setSelectedShipment(s); setDetailOpen(true); }}
               >
                 {columns.map((col) => (
                   <td
