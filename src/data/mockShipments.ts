@@ -23,11 +23,18 @@ export interface Shipment {
   customs: boolean;
   pod: boolean;
   tags: string[];
-  remarks: string;
+  remarks: Remark[];
   invoices: Invoice[];
   containers: Container[];
   statusSteps: StatusStep[];
   events: ShipmentEvent[];
+}
+
+export interface Remark {
+  id: string;
+  author: string;
+  text: string;
+  date: string;
 }
 
 export interface ShipmentEvent {
@@ -62,6 +69,23 @@ export interface StatusStep {
   description?: string;
 }
 
+export const AVAILABLE_TAGS = [
+  "Urgent", "Priority", "Fragile", "Hazardous", "Perishable",
+  "Temperature Controlled", "Oversized", "High Value", "Documents Required",
+  "VIP Client", "Bonded", "Re-export", "Sample", "Return Shipment",
+];
+
+export const CITY_FLAGS: Record<string, string> = {
+  "HONG KONG": "🇭🇰",
+  "TEL AVIV": "🇮🇱",
+  "LOS ANGELES": "🇺🇸",
+  "HAMBURG": "🇩🇪",
+  "SINGAPORE": "🇸🇬",
+  "BEIJING": "🇨🇳",
+  "NEW YORK": "🇺🇸",
+  "LONDON": "🇬🇧",
+};
+
 export const mockShipments: Shipment[] = [
   {
     id: "1",
@@ -87,8 +111,11 @@ export const mockShipments: Shipment[] = [
     pickup: true,
     customs: true,
     pod: true,
-    tags: [],
-    remarks: "",
+    tags: ["Priority", "VIP Client"],
+    remarks: [
+      { id: "r1", author: "Sarah Cohen", text: "Client requested early morning delivery", date: "Sep 20, 08:00 AM" },
+      { id: "r2", author: "David Levi", text: "Customs cleared without issues", date: "Sep 21, 06:15 PM" },
+    ],
     invoices: [
       { number: "INV-2025-001", date: "9/21/2025 10:00 AM", amount: 1160.90, currency: "USD", status: "PAID", description: "Freight charges" },
       { number: "INV-2025-002", date: "9/21/2025 12:00 PM", amount: 250.00, currency: "USD", status: "PAID", description: "Customs brokerage" },
@@ -134,8 +161,10 @@ export const mockShipments: Shipment[] = [
     pickup: true,
     customs: true,
     pod: true,
-    tags: [],
-    remarks: "",
+    tags: ["Fragile", "High Value"],
+    remarks: [
+      { id: "r3", author: "Mike Ross", text: "Handle with care - electronic components", date: "Sep 20, 09:00 AM" },
+    ],
     invoices: [
       { number: "INV-2025-004", date: "9/22/2025 09:00 AM", amount: 2340.00, currency: "USD", status: "PAID", description: "Air freight" },
       { number: "INV-2025-005", date: "9/22/2025 11:00 AM", amount: 180.00, currency: "USD", status: "ISSUED", description: "Handling fees" },
@@ -179,8 +208,8 @@ export const mockShipments: Shipment[] = [
     pickup: false,
     customs: false,
     pod: false,
-    tags: [],
-    remarks: "",
+    tags: ["Oversized"],
+    remarks: [],
     invoices: [
       { number: "INV-2025-006", date: "9/19/2025 10:00 AM", amount: 4500.00, currency: "USD", status: "ISSUED", description: "Ocean freight" },
       { number: "INV-2025-007", date: "9/19/2025 10:30 AM", amount: 800.00, currency: "EUR", status: "ISSUED", description: "Container handling" },
@@ -227,8 +256,12 @@ export const mockShipments: Shipment[] = [
     pickup: true,
     customs: false,
     pod: false,
-    tags: [],
-    remarks: "",
+    tags: ["Hazardous", "Documents Required"],
+    remarks: [
+      { id: "r4", author: "Anna Schmidt", text: "Special handling required for hazardous materials", date: "Sep 16, 08:00 AM" },
+      { id: "r5", author: "Chen Wei", text: "All export documents submitted", date: "Sep 17, 10:00 AM" },
+      { id: "r6", author: "Anna Schmidt", text: "Border crossing delay expected at Alashankou", date: "Sep 22, 03:00 PM" },
+    ],
     invoices: [
       { number: "INV-2025-010", date: "9/16/2025 08:00 AM", amount: 6200.00, currency: "USD", status: "PAID", description: "Rail freight" },
       { number: "INV-2025-011", date: "9/16/2025 09:00 AM", amount: 450.00, currency: "USD", status: "PAID", description: "Container loading" },
@@ -280,7 +313,9 @@ export const mockShipments: Shipment[] = [
     customs: true,
     pod: true,
     tags: [],
-    remarks: "",
+    remarks: [
+      { id: "r7", author: "James Brown", text: "Standard delivery, no special requirements", date: "Sep 15, 12:00 PM" },
+    ],
     invoices: [
       { number: "INV-2025-015", date: "9/15/2025 12:00 PM", amount: 1850.00, currency: "USD", status: "PAID", description: "Air freight charges" },
       { number: "INV-2025-016", date: "9/15/2025 01:00 PM", amount: 195.00, currency: "GBP", status: "PAID", description: "UK customs clearance" },
