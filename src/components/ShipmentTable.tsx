@@ -1,10 +1,44 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { mockShipments, type Shipment } from "@/data/mockShipments";
-import { Check, AlertTriangle, MessageSquare, Tag, FileText, Activity } from "lucide-react";
+import { useState, useRef, useCallback } from "react";
+import { mockShipments, CITY_FLAGS, type Shipment, type Remark } from "@/data/mockShipments";
+import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, TrainFront, CircleDot } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ShipmentDetailDialog from "@/components/ShipmentDetailDialog";
 import InvoicesDialog from "@/components/InvoicesDialog";
 import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
+import TagsDialog from "@/components/TagsDialog";
+import RemarksDialog from "@/components/RemarksDialog";
 
+// --- helpers ---
+const TruncatedCell = ({ text, maxW = 100 }: { text: string; maxW?: number }) => (
+  <TooltipProvider delayDuration={200}>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="block truncate" style={{ maxWidth: maxW }}>{text}</span>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs text-xs">{text}</TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
+);
+
+const modeIcon: Record<string, React.ReactNode> = {
+  Air: <Plane className="w-3 h-3" />,
+  Ocean: <Ship className="w-3 h-3" />,
+  Rail: <TrainFront className="w-3 h-3" />,
+};
+
+const modeColor: Record<string, string> = {
+  Air: "bg-primary/10 text-primary",
+  Ocean: "bg-primary/10 text-primary",
+  Rail: "bg-primary/10 text-primary",
+};
+
+const eventChipColor: Record<string, string> = {
+  Delivered: "bg-success/10 text-success",
+  "In Transit": "bg-primary/10 text-primary",
+  "Pickup Scheduled": "bg-warning/10 text-warning",
+};
+
+// --- column definition ---
 interface ColumnDef {
   id: string;
   label: string;
@@ -18,83 +52,188 @@ interface TableHelpers {
   openDetail: (s: Shipment) => void;
   openInvoices: (s: Shipment) => void;
   openEvents: (s: Shipment) => void;
+  openTags: (s: Shipment) => void;
+  openRemarks: (s: Shipment) => void;
 }
 
 const createColumns = (): ColumnDef[] => [
   {
-    id: "events", label: "Events", align: "center", minWidth: 60, defaultWidth: 70,
+    id: "events", label: "Events", align: "center", minWidth: 50, defaultWidth: 58,
     render: (s, h) => (
-      <button onClick={() => h.openEvents(s)} className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium border rounded hover:bg-accent transition-colors text-primary">
-        <Activity className="w-3.5 h-3.5" />
+      <button onClick={() => h.openEvents(s)} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:bg-accent rounded px-1.5 py-0.5 transition-colors">
+        <CircleDot className="w-3.5 h-3.5" />
         {s.events.length}
       </button>
     ),
   },
   {
-    id: "fileNumber", label: "File Number", align: "left", minWidth: 100, defaultWidth: 140,
+    id: "fileNumber", label: "File No.", align: "left", minWidth: 80, defaultWidth: 110,
     render: (s, h) => (
-      <button onClick={() => h.openDetail(s)} className="text-primary font-medium hover:underline">{s.fileNumber}</button>
-    ),
-  },
-  { id: "houseBill", label: "House Bill", align: "left", minWidth: 80, defaultWidth: 100, render: (s) => <span className="font-medium text-foreground">{s.houseBill}</span> },
-  { id: "clientRef", label: "Client Ref.", align: "left", minWidth: 100, defaultWidth: 150, render: (s) => <span className="text-muted-foreground">{s.clientRef}</span> },
-  { id: "opened", label: "Opened", align: "left", minWidth: 120, defaultWidth: 160, render: (s) => <span className="text-muted-foreground whitespace-nowrap">{s.opened}</span> },
-  { id: "transportMode", label: "Transport Mode", align: "left", minWidth: 100, defaultWidth: 120, render: (s) => <span className="text-foreground">{s.transportMode}</span> },
-  { id: "origin", label: "Origin", align: "left", minWidth: 80, defaultWidth: 120, render: (s) => <span className="text-foreground whitespace-nowrap">{s.origin}</span> },
-  { id: "destination", label: "Destination", align: "left", minWidth: 80, defaultWidth: 120, render: (s) => <span className="text-foreground whitespace-nowrap">{s.destination}</span> },
-  { id: "shipper", label: "Shipper", align: "left", minWidth: 100, defaultWidth: 180, render: (s) => <span className="text-foreground text-xs">{s.shipper}</span> },
-  { id: "consignee", label: "Consignee", align: "left", minWidth: 100, defaultWidth: 180, render: (s) => <span className="text-foreground text-xs">{s.consignee}</span> },
-  {
-    id: "exceptions", label: "Exceptions", align: "center", minWidth: 70, defaultWidth: 90,
-    render: (s) => s.exceptions > 0
-      ? <span className="inline-flex items-center gap-1 text-warning font-semibold text-xs"><AlertTriangle className="w-3.5 h-3.5" />{s.exceptions}</span>
-      : <Check className="w-4 h-4 text-success mx-auto" />,
-  },
-  {
-    id: "invoices", label: "Invoices", align: "center", minWidth: 70, defaultWidth: 80,
-    render: (s, h) => (
-      <button onClick={() => h.openInvoices(s)} className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium border rounded hover:bg-accent transition-colors text-primary">
-        <FileText className="w-3.5 h-3.5" />{s.invoiceCount}
+      <button onClick={() => h.openDetail(s)} className="text-primary font-medium hover:underline text-xs">
+        <TruncatedCell text={s.fileNumber} maxW={95} />
       </button>
     ),
   },
   {
-    id: "containers", label: "Containers", align: "center", minWidth: 70, defaultWidth: 90,
-    render: (s) => s.containerCount > 0
-      ? <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium border rounded text-foreground">{s.containerCount}</span>
-      : <span className="text-muted-foreground">—</span>,
-  },
-  { id: "etd", label: "ETD", align: "left", minWidth: 100, defaultWidth: 140, render: (s) => <span className="text-muted-foreground whitespace-nowrap text-xs">{s.etd}</span> },
-  {
-    id: "atd", label: "ATD", align: "left", minWidth: 100, defaultWidth: 140,
-    render: (s) => s.atd ? <span className="text-destructive font-medium whitespace-nowrap text-xs">{s.atd}</span> : <span className="text-muted-foreground">—</span>,
-  },
-  { id: "eta", label: "ETA", align: "left", minWidth: 100, defaultWidth: 140, render: (s) => <span className="text-muted-foreground whitespace-nowrap text-xs">{s.eta}</span> },
-  {
-    id: "ata", label: "ATA", align: "left", minWidth: 100, defaultWidth: 140,
-    render: (s) => s.ata ? <span className="text-destructive font-medium whitespace-nowrap text-xs">{s.ata}</span> : <span className="text-muted-foreground">—</span>,
+    id: "houseBill", label: "House Bill", align: "left", minWidth: 70, defaultWidth: 82,
+    render: (s) => <span className="font-medium text-foreground text-xs">{s.houseBill}</span>,
   },
   {
-    id: "lastEvent", label: "Last Event", align: "left", minWidth: 80, defaultWidth: 110,
+    id: "clientRef", label: "Client Ref.", align: "left", minWidth: 80, defaultWidth: 110,
+    render: (s) => <TruncatedCell text={s.clientRef} maxW={95} />,
+  },
+  {
+    id: "opened", label: "Opened", align: "left", minWidth: 80, defaultWidth: 95,
+    render: (s) => {
+      const short = s.opened.split(" ")[0];
+      return (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild><span className="text-muted-foreground text-xs whitespace-nowrap">{short}</span></TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">{s.opened}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    },
+  },
+  {
+    id: "transportMode", label: "Mode", align: "center", minWidth: 65, defaultWidth: 75,
     render: (s) => (
-      <span className={`text-xs font-medium ${s.lastEvent === "Delivered" ? "text-success" : s.lastEvent === "In Transit" ? "text-primary" : "text-foreground"}`}>
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${modeColor[s.transportMode]}`}>
+        {modeIcon[s.transportMode]}{s.transportMode}
+      </span>
+    ),
+  },
+  {
+    id: "origin", label: "Origin", align: "left", minWidth: 80, defaultWidth: 105,
+    render: (s) => (
+      <span className="text-foreground text-xs whitespace-nowrap">
+        {CITY_FLAGS[s.origin] || ""} {s.origin.charAt(0) + s.origin.slice(1).toLowerCase()}
+      </span>
+    ),
+  },
+  {
+    id: "destination", label: "Dest.", align: "left", minWidth: 80, defaultWidth: 105,
+    render: (s) => (
+      <span className="text-foreground text-xs whitespace-nowrap">
+        {CITY_FLAGS[s.destination] || ""} {s.destination.charAt(0) + s.destination.slice(1).toLowerCase()}
+      </span>
+    ),
+  },
+  {
+    id: "shipper", label: "Shipper", align: "left", minWidth: 80, defaultWidth: 120,
+    render: (s) => <TruncatedCell text={s.shipper} maxW={110} />,
+  },
+  {
+    id: "consignee", label: "Consignee", align: "left", minWidth: 80, defaultWidth: 120,
+    render: (s) => <TruncatedCell text={s.consignee} maxW={110} />,
+  },
+  {
+    id: "exceptions", label: "Exc.", align: "center", minWidth: 45, defaultWidth: 50,
+    render: (s) => s.exceptions > 0
+      ? <span className="inline-flex items-center gap-0.5 text-warning font-semibold text-xs"><AlertTriangle className="w-3 h-3" />{s.exceptions}</span>
+      : <Check className="w-3.5 h-3.5 text-success mx-auto" />,
+  },
+  {
+    id: "invoices", label: "Inv.", align: "center", minWidth: 45, defaultWidth: 50,
+    render: (s, h) => (
+      <button onClick={() => h.openInvoices(s)} className="inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:bg-accent rounded px-1.5 py-0.5 transition-colors">
+        <FileText className="w-3 h-3" />{s.invoiceCount}
+      </button>
+    ),
+  },
+  {
+    id: "containers", label: "Cnt.", align: "center", minWidth: 40, defaultWidth: 45,
+    render: (s) => s.containerCount > 0
+      ? <span className="text-xs font-medium text-foreground">{s.containerCount}</span>
+      : <span className="text-muted-foreground text-xs">—</span>,
+  },
+  {
+    id: "etd", label: "ETD", align: "left", minWidth: 70, defaultWidth: 82,
+    render: (s) => {
+      const short = s.etd.split(" ")[0];
+      return (
+        <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild>
+          <span className="text-muted-foreground text-xs whitespace-nowrap">{short}</span>
+        </TooltipTrigger><TooltipContent side="top" className="text-xs">{s.etd}</TooltipContent></Tooltip></TooltipProvider>
+      );
+    },
+  },
+  {
+    id: "atd", label: "ATD", align: "left", minWidth: 70, defaultWidth: 82,
+    render: (s) => {
+      if (!s.atd) return <span className="text-muted-foreground text-xs">—</span>;
+      const short = s.atd.split(" ")[0];
+      return (
+        <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild>
+          <span className="text-destructive font-medium text-xs whitespace-nowrap">{short}</span>
+        </TooltipTrigger><TooltipContent side="top" className="text-xs">{s.atd}</TooltipContent></Tooltip></TooltipProvider>
+      );
+    },
+  },
+  {
+    id: "eta", label: "ETA", align: "left", minWidth: 70, defaultWidth: 82,
+    render: (s) => {
+      const short = s.eta.split(" ")[0];
+      return (
+        <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild>
+          <span className="text-muted-foreground text-xs whitespace-nowrap">{short}</span>
+        </TooltipTrigger><TooltipContent side="top" className="text-xs">{s.eta}</TooltipContent></Tooltip></TooltipProvider>
+      );
+    },
+  },
+  {
+    id: "ata", label: "ATA", align: "left", minWidth: 70, defaultWidth: 82,
+    render: (s) => {
+      if (!s.ata) return <span className="text-muted-foreground text-xs">—</span>;
+      const short = s.ata.split(" ")[0];
+      return (
+        <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild>
+          <span className="text-destructive font-medium text-xs whitespace-nowrap">{short}</span>
+        </TooltipTrigger><TooltipContent side="top" className="text-xs">{s.ata}</TooltipContent></Tooltip></TooltipProvider>
+      );
+    },
+  },
+  {
+    id: "lastEvent", label: "Last Event", align: "center", minWidth: 80, defaultWidth: 100,
+    render: (s) => (
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${eventChipColor[s.lastEvent] || "bg-muted text-foreground"}`}>
         {s.lastEvent}
       </span>
     ),
   },
-  { id: "pickupReq", label: "Pickup Req.", align: "center", minWidth: 60, defaultWidth: 80, render: (s) => s.pickupRequest ? <Check className="w-4 h-4 text-success mx-auto" /> : null },
-  { id: "pickup", label: "Pickup", align: "center", minWidth: 60, defaultWidth: 70, render: (s) => s.pickup ? <Check className="w-4 h-4 text-success mx-auto" /> : null },
-  { id: "customs", label: "Customs", align: "center", minWidth: 60, defaultWidth: 70, render: (s) => s.customs ? <Check className="w-4 h-4 text-success mx-auto" /> : null },
-  { id: "pod", label: "POD", align: "center", minWidth: 60, defaultWidth: 60, render: (s) => s.pod ? <Check className="w-4 h-4 text-success mx-auto" /> : null },
-  { id: "tags", label: "Tags", align: "center", minWidth: 50, defaultWidth: 60, render: () => <Tag className="w-4 h-4 text-muted-foreground mx-auto" /> },
-  { id: "remarks", label: "Remarks", align: "center", minWidth: 50, defaultWidth: 70, render: () => <MessageSquare className="w-4 h-4 text-muted-foreground mx-auto" /> },
+  { id: "pickupReq", label: "P.Req", align: "center", minWidth: 40, defaultWidth: 45, render: (s) => s.pickupRequest ? <Check className="w-3.5 h-3.5 text-success mx-auto" /> : null },
+  { id: "pickup", label: "P.Up", align: "center", minWidth: 40, defaultWidth: 45, render: (s) => s.pickup ? <Check className="w-3.5 h-3.5 text-success mx-auto" /> : null },
+  { id: "customs", label: "Cust.", align: "center", minWidth: 40, defaultWidth: 45, render: (s) => s.customs ? <Check className="w-3.5 h-3.5 text-success mx-auto" /> : null },
+  { id: "pod", label: "POD", align: "center", minWidth: 40, defaultWidth: 45, render: (s) => s.pod ? <Check className="w-3.5 h-3.5 text-success mx-auto" /> : null },
+  {
+    id: "tags", label: "Tags", align: "center", minWidth: 55, defaultWidth: 70,
+    render: (s, h) => (
+      <button onClick={() => h.openTags(s)} className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:bg-accent rounded px-1.5 py-0.5 transition-colors">
+        <Tag className="w-3 h-3" />
+        {s.tags.length > 0 && <span className="font-medium">{s.tags.length}</span>}
+      </button>
+    ),
+  },
+  {
+    id: "remarks", label: "Rem.", align: "center", minWidth: 45, defaultWidth: 55,
+    render: (s, h) => (
+      <button onClick={() => h.openRemarks(s)} className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:bg-accent rounded px-1.5 py-0.5 transition-colors">
+        <MessageSquare className="w-3 h-3" />
+        {s.remarks.length > 0 && <span className="font-medium">{s.remarks.length}</span>}
+      </button>
+    ),
+  },
 ];
 
 const ShipmentTable = () => {
+  const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [invoiceShipment, setInvoiceShipment] = useState<Shipment | null>(null);
   const [eventsShipment, setEventsShipment] = useState<Shipment | null>(null);
+  const [tagsShipment, setTagsShipment] = useState<Shipment | null>(null);
+  const [remarksShipment, setRemarksShipment] = useState<Shipment | null>(null);
 
   const [columns, setColumns] = useState<ColumnDef[]>(createColumns);
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
@@ -103,25 +242,27 @@ const ShipmentTable = () => {
     return w;
   });
 
-  // Drag reorder state
+  // Drag reorder
   const [draggedCol, setDraggedCol] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
 
-  // Resize state
+  // Resize
   const resizing = useRef<{ colId: string; startX: number; startWidth: number } | null>(null);
 
   const handleResizeStart = useCallback((e: React.MouseEvent, colId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    resizing.current = { colId, startX: e.clientX, startWidth: columnWidths[colId] };
+    const startX = e.clientX;
+    const startWidth = columnWidths[colId];
+    resizing.current = { colId, startX, startWidth };
+
+    const col = columns.find((c) => c.id === colId);
+    const minW = col?.minWidth ?? 40;
 
     const onMove = (ev: MouseEvent) => {
-      if (!resizing.current) return;
-      const { colId: activeColId, startX, startWidth } = resizing.current;
       const diff = ev.clientX - startX;
-      const col = columns.find((c) => c.id === activeColId);
-      const newW = Math.max(col?.minWidth ?? 50, startWidth + diff);
-      setColumnWidths((prev) => ({ ...prev, [activeColId]: newW }));
+      const newW = Math.max(minW, startWidth + diff);
+      setColumnWidths((prev) => ({ ...prev, [colId]: newW }));
     };
     const onUp = () => {
       resizing.current = null;
@@ -137,7 +278,19 @@ const ShipmentTable = () => {
   }, [columnWidths, columns]);
 
   // Drag handlers
-  const handleDragStart = (colId: string) => setDraggedCol(colId);
+  const handleDragStart = (e: React.DragEvent, colId: string) => {
+    setDraggedCol(colId);
+    e.dataTransfer.effectAllowed = "move";
+    // Create a ghost element that shows the full column
+    const th = e.currentTarget as HTMLElement;
+    const ghost = th.cloneNode(true) as HTMLElement;
+    ghost.style.opacity = "0.7";
+    ghost.style.position = "absolute";
+    ghost.style.top = "-9999px";
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 20, 20);
+    setTimeout(() => document.body.removeChild(ghost), 0);
+  };
   const handleDragOver = (e: React.DragEvent, colId: string) => { e.preventDefault(); setDragOverCol(colId); };
   const handleDragEnd = () => { setDraggedCol(null); setDragOverCol(null); };
   const handleDrop = (targetColId: string) => {
@@ -154,59 +307,84 @@ const ShipmentTable = () => {
     setDragOverCol(null);
   };
 
+  // Tags save
+  const handleTagsSave = (tags: string[]) => {
+    if (!tagsShipment) return;
+    setShipments((prev) => prev.map((s) => s.id === tagsShipment.id ? { ...s, tags } : s));
+    setTagsShipment((prev) => prev ? { ...prev, tags } : null);
+  };
+
+  // Remarks add
+  const handleRemarkAdd = (text: string) => {
+    if (!remarksShipment) return;
+    const newRemark: Remark = {
+      id: `r-${Date.now()}`,
+      author: "John Smith",
+      text,
+      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }),
+    };
+    setShipments((prev) => prev.map((s) => s.id === remarksShipment.id ? { ...s, remarks: [...s.remarks, newRemark] } : s));
+    setRemarksShipment((prev) => prev ? { ...prev, remarks: [...prev.remarks, newRemark] } : null);
+  };
+
   const helpers: TableHelpers = {
     openDetail: (s) => { setSelectedShipment(s); setDetailOpen(true); },
     openInvoices: (s) => setInvoiceShipment(s),
     openEvents: (s) => setEventsShipment(s),
+    openTags: (s) => setTagsShipment(s),
+    openRemarks: (s) => setRemarksShipment(s),
   };
 
   return (
     <div className="bg-card rounded-lg border shadow-sm">
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-5 py-3 border-b">
-        <span className="text-sm text-muted-foreground font-medium">{mockShipments.length} records found</span>
+      <div className="flex items-center justify-between px-4 py-2 border-b">
+        <span className="text-xs text-muted-foreground font-medium">{shipments.length} records</span>
         <div className="flex items-center gap-2">
-          <button className="px-3 py-1.5 text-sm font-medium border rounded hover:bg-accent transition-colors text-foreground">Export</button>
-          <button className="px-3 py-1.5 text-sm font-medium border rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">Refresh</button>
+          <button className="px-2.5 py-1 text-xs font-medium border rounded hover:bg-accent transition-colors text-foreground">Export</button>
+          <button className="px-2.5 py-1 text-xs font-medium border rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">Refresh</button>
         </div>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="text-sm" style={{ minWidth: "100%" }}>
+        <table className="text-xs" style={{ minWidth: "100%" }}>
           <thead>
             <tr className="bg-table-header border-b">
               {columns.map((col) => (
                 <th
                   key={col.id}
                   draggable
-                  onDragStart={() => handleDragStart(col.id)}
+                  onDragStart={(e) => handleDragStart(e, col.id)}
                   onDragOver={(e) => handleDragOver(e, col.id)}
                   onDragEnd={handleDragEnd}
                   onDrop={() => handleDrop(col.id)}
                   className={`relative group font-semibold text-foreground whitespace-nowrap select-none ${
                     col.align === "center" ? "text-center" : "text-left"
-                  } ${dragOverCol === col.id ? "bg-accent" : ""}`}
-                  style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "12px 16px" }}
+                  } ${dragOverCol === col.id ? "bg-accent" : ""} ${draggedCol === col.id ? "opacity-40" : ""}`}
+                  style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "8px 6px" }}
                 >
-                  <span className="cursor-grab active:cursor-grabbing">{col.label}</span>
-                  {/* Resize handle */}
+                  <span className="cursor-grab active:cursor-grabbing text-[11px]">{col.label}</span>
                   <div
                     onMouseDown={(e) => handleResizeStart(e, col.id)}
-                    className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize opacity-0 group-hover:opacity-100 hover:bg-primary/40 transition-opacity"
+                    className="absolute right-0 top-0 bottom-0 w-[3px] cursor-col-resize opacity-0 group-hover:opacity-100 bg-primary/30 hover:bg-primary/50 transition-opacity"
+                    style={{ zIndex: 10 }}
                   />
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {mockShipments.map((s) => (
-              <tr key={s.id} className="border-b last:border-0 hover:bg-table-row-hover transition-colors">
+            {shipments.map((s) => (
+              <tr
+                key={s.id}
+                className={`border-b last:border-0 hover:bg-table-row-hover transition-colors ${draggedCol ? "pointer-events-none" : ""}`}
+              >
                 {columns.map((col) => (
                   <td
                     key={col.id}
-                    className={col.align === "center" ? "text-center" : ""}
-                    style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "14px 16px" }}
+                    className={`${col.align === "center" ? "text-center" : ""} ${draggedCol === col.id ? "opacity-40" : ""}`}
+                    style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "6px 6px" }}
                   >
                     {col.render(s, helpers)}
                   </td>
@@ -218,12 +396,12 @@ const ShipmentTable = () => {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-5 py-3 border-t text-sm text-muted-foreground">
-        <span>Showing 1 to {mockShipments.length} of {mockShipments.length} entries</span>
+      <div className="flex items-center justify-between px-4 py-2 border-t text-xs text-muted-foreground">
+        <span>1–{shipments.length} of {shipments.length}</span>
         <div className="flex items-center gap-1">
-          <button className="px-3 py-1 border rounded text-muted-foreground hover:bg-accent transition-colors" disabled>Previous</button>
-          <button className="px-3 py-1 border rounded bg-primary text-primary-foreground font-medium">1</button>
-          <button className="px-3 py-1 border rounded text-muted-foreground hover:bg-accent transition-colors" disabled>Next</button>
+          <button className="px-2 py-0.5 border rounded text-muted-foreground hover:bg-accent transition-colors" disabled>Prev</button>
+          <button className="px-2 py-0.5 border rounded bg-primary text-primary-foreground font-medium">1</button>
+          <button className="px-2 py-0.5 border rounded text-muted-foreground hover:bg-accent transition-colors" disabled>Next</button>
         </div>
       </div>
 
@@ -233,6 +411,12 @@ const ShipmentTable = () => {
         <InvoicesDialog invoices={invoiceShipment.invoices} houseBill={invoiceShipment.houseBill} open={!!invoiceShipment} onClose={() => setInvoiceShipment(null)} />
       )}
       <ShipmentEventsDialog shipment={eventsShipment} open={!!eventsShipment} onClose={() => setEventsShipment(null)} />
+      {tagsShipment && (
+        <TagsDialog tags={tagsShipment.tags} houseBill={tagsShipment.houseBill} open={!!tagsShipment} onClose={() => setTagsShipment(null)} onSave={handleTagsSave} />
+      )}
+      {remarksShipment && (
+        <RemarksDialog remarks={remarksShipment.remarks} houseBill={remarksShipment.houseBill} open={!!remarksShipment} onClose={() => setRemarksShipment(null)} onAdd={handleRemarkAdd} />
+      )}
     </div>
   );
 };
