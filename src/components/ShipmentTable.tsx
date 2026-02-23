@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { mockShipments, CITY_FLAGS, type Shipment, type Remark } from "@/data/mockShipments";
-import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, TrainFront, CircleDot } from "lucide-react";
+import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Sailboat, TramFront, CircleDot } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ShipmentDetailDialog from "@/components/ShipmentDetailDialog";
 import InvoicesDialog from "@/components/InvoicesDialog";
@@ -22,8 +22,8 @@ const TruncatedCell = ({ text, maxW = 100 }: { text: string; maxW?: number }) =>
 
 const modeIcon: Record<string, React.ReactNode> = {
   Air: <Plane className="w-3 h-3" />,
-  Ocean: <Ship className="w-3 h-3" />,
-  Rail: <TrainFront className="w-3 h-3" />,
+  Ocean: <Sailboat className="w-3 h-3" />,
+  Rail: <TramFront className="w-3 h-3" />,
 };
 
 const modeColor: Record<string, string> = {
@@ -58,7 +58,7 @@ interface TableHelpers {
 
 const createColumns = (): ColumnDef[] => [
   {
-    id: "events", label: "Events", align: "center", minWidth: 50, defaultWidth: 58,
+    id: "events", label: "Events", align: "left", minWidth: 50, defaultWidth: 58,
     render: (s, h) => (
       <button onClick={() => h.openEvents(s)} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:bg-accent rounded px-1.5 py-0.5 transition-colors">
         <CircleDot className="w-3.5 h-3.5" />
@@ -97,9 +97,9 @@ const createColumns = (): ColumnDef[] => [
     },
   },
   {
-    id: "transportMode", label: "Mode", align: "center", minWidth: 65, defaultWidth: 75,
+    id: "transportMode", label: "Mode", align: "left", minWidth: 65, defaultWidth: 90,
     render: (s) => (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${modeColor[s.transportMode]}`}>
+      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${modeColor[s.transportMode]}`}>
         {modeIcon[s.transportMode]}{s.transportMode}
       </span>
     ),
@@ -129,13 +129,13 @@ const createColumns = (): ColumnDef[] => [
     render: (s) => <TruncatedCell text={s.consignee} maxW={110} />,
   },
   {
-    id: "exceptions", label: "Exc.", align: "center", minWidth: 45, defaultWidth: 50,
+    id: "exceptions", label: "Exc.", align: "left", minWidth: 45, defaultWidth: 50,
     render: (s) => s.exceptions > 0
       ? <span className="inline-flex items-center gap-0.5 text-warning font-semibold text-xs"><AlertTriangle className="w-3 h-3" />{s.exceptions}</span>
-      : <Check className="w-3.5 h-3.5 text-success mx-auto" />,
+      : <Check className="w-3.5 h-3.5 text-success" />,
   },
   {
-    id: "invoices", label: "Inv.", align: "center", minWidth: 45, defaultWidth: 50,
+    id: "invoices", label: "Inv.", align: "left", minWidth: 45, defaultWidth: 50,
     render: (s, h) => (
       <button onClick={() => h.openInvoices(s)} className="inline-flex items-center gap-0.5 text-xs font-medium text-primary hover:bg-accent rounded px-1.5 py-0.5 transition-colors">
         <FileText className="w-3 h-3" />{s.invoiceCount}
@@ -143,7 +143,7 @@ const createColumns = (): ColumnDef[] => [
     ),
   },
   {
-    id: "containers", label: "Cnt.", align: "center", minWidth: 40, defaultWidth: 45,
+    id: "containers", label: "Cnt.", align: "left", minWidth: 40, defaultWidth: 45,
     render: (s) => s.containerCount > 0
       ? <span className="text-xs font-medium text-foreground">{s.containerCount}</span>
       : <span className="text-muted-foreground text-xs">—</span>,
@@ -195,19 +195,19 @@ const createColumns = (): ColumnDef[] => [
     },
   },
   {
-    id: "lastEvent", label: "Last Event", align: "center", minWidth: 80, defaultWidth: 100,
+    id: "lastEvent", label: "Last Event", align: "left", minWidth: 100, defaultWidth: 120,
     render: (s) => (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${eventChipColor[s.lastEvent] || "bg-muted text-foreground"}`}>
+      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${eventChipColor[s.lastEvent] || "bg-muted text-foreground"}`}>
         {s.lastEvent}
       </span>
     ),
   },
-  { id: "pickupReq", label: "P.Req", align: "center", minWidth: 40, defaultWidth: 45, render: (s) => s.pickupRequest ? <Check className="w-3.5 h-3.5 text-success mx-auto" /> : null },
-  { id: "pickup", label: "P.Up", align: "center", minWidth: 40, defaultWidth: 45, render: (s) => s.pickup ? <Check className="w-3.5 h-3.5 text-success mx-auto" /> : null },
-  { id: "customs", label: "Cust.", align: "center", minWidth: 40, defaultWidth: 45, render: (s) => s.customs ? <Check className="w-3.5 h-3.5 text-success mx-auto" /> : null },
-  { id: "pod", label: "POD", align: "center", minWidth: 40, defaultWidth: 45, render: (s) => s.pod ? <Check className="w-3.5 h-3.5 text-success mx-auto" /> : null },
+  { id: "pickupReq", label: "P.Req", align: "left", minWidth: 40, defaultWidth: 45, render: (s) => s.pickupRequest ? <Check className="w-3.5 h-3.5 text-success" /> : null },
+  { id: "pickup", label: "P.Up", align: "left", minWidth: 40, defaultWidth: 45, render: (s) => s.pickup ? <Check className="w-3.5 h-3.5 text-success" /> : null },
+  { id: "customs", label: "Cust.", align: "left", minWidth: 40, defaultWidth: 45, render: (s) => s.customs ? <Check className="w-3.5 h-3.5 text-success" /> : null },
+  { id: "pod", label: "POD", align: "left", minWidth: 40, defaultWidth: 45, render: (s) => s.pod ? <Check className="w-3.5 h-3.5 text-success" /> : null },
   {
-    id: "tags", label: "Tags", align: "center", minWidth: 55, defaultWidth: 70,
+    id: "tags", label: "Tags", align: "left", minWidth: 55, defaultWidth: 70,
     render: (s, h) => (
       <button onClick={() => h.openTags(s)} className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:bg-accent rounded px-1.5 py-0.5 transition-colors">
         <Tag className="w-3 h-3" />
@@ -216,7 +216,7 @@ const createColumns = (): ColumnDef[] => [
     ),
   },
   {
-    id: "remarks", label: "Rem.", align: "center", minWidth: 45, defaultWidth: 55,
+    id: "remarks", label: "Rem.", align: "left", minWidth: 45, defaultWidth: 55,
     render: (s, h) => (
       <button onClick={() => h.openRemarks(s)} className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:bg-accent rounded px-1.5 py-0.5 transition-colors">
         <MessageSquare className="w-3 h-3" />
