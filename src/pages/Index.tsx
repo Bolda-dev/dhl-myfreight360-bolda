@@ -1,12 +1,20 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Navbar from "@/components/Navbar";
+import ShipmentTable from "@/components/ShipmentTable";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="flex flex-col min-h-screen bg-background">
+      <Navbar />
+      <main className="flex-1 p-6">
+        <div className="mb-5">
+          <h1 className="text-xl font-semibold text-foreground">Logistics Module</h1>
+          <p className="text-sm text-muted-foreground mt-1">Shipment tracking and management</p>
+        </div>
+        <ShipmentTable />
+      </main>
+      <footer className="border-t px-6 py-3 text-xs text-muted-foreground">
+        © 2025 MyFreight360. All rights reserved.
+      </footer>
     </div>
   );
 };
