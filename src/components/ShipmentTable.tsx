@@ -226,8 +226,11 @@ const createColumns = (): ColumnDef[] => [
   },
 ];
 
+const BATCH_SIZE = 20;
+
 const ShipmentTable = () => {
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [invoiceShipment, setInvoiceShipment] = useState<Shipment | null>(null);
@@ -241,6 +244,27 @@ const ShipmentTable = () => {
     createColumns().forEach((c) => (w[c.id] = c.defaultWidth));
     return w;
   });
+
+  // Infinite scroll sentinel
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  const setupObserver = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) observerRef.current.disconnect();
+    if (!node) return;
+    sentinelRef.current = node;
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, shipments.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observerRef.current.observe(node);
+  }, [shipments.length]);
+
+  const visibleShipments = shipments.slice(0, visibleCount);
 
   // Drag reorder
   const [draggedCol, setDraggedCol] = useState<string | null>(null);
@@ -375,7 +399,7 @@ const ShipmentTable = () => {
             </tr>
           </thead>
           <tbody>
-            {shipments.map((s) => (
+            {visibleShipments.map((s) => (
               <tr
                 key={s.id}
                 className={`border-b last:border-0 hover:bg-table-row-hover transition-colors ${draggedCol ? "pointer-events-none" : ""}`}
@@ -395,15 +419,16 @@ const ShipmentTable = () => {
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Infinite scroll sentinel + status bar */}
       <div className="flex items-center justify-between px-4 py-2 border-t text-xs text-muted-foreground">
-        <span>1–{shipments.length} of {shipments.length}</span>
-        <div className="flex items-center gap-1">
-          <button className="px-2 py-0.5 border rounded text-muted-foreground hover:bg-accent transition-colors" disabled>Prev</button>
-          <button className="px-2 py-0.5 border rounded bg-primary text-primary-foreground font-medium">1</button>
-          <button className="px-2 py-0.5 border rounded text-muted-foreground hover:bg-accent transition-colors" disabled>Next</button>
-        </div>
+        <span>Showing {visibleCount < shipments.length ? visibleCount : shipments.length} of {shipments.length}</span>
+        {visibleCount < shipments.length && (
+          <span className="text-primary animate-pulse text-[11px]">Scroll for more…</span>
+        )}
       </div>
+      {visibleCount < shipments.length && (
+        <div ref={setupObserver} className="h-1" />
+      )}
 
       {/* Dialogs */}
       <ShipmentDetailDialog shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
