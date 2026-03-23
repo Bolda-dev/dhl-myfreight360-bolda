@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
-import { mockShipments, CITY_FLAGS, type Shipment, type Remark } from "@/data/mockShipments";
-import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3 } from "lucide-react";
+import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark } from "@/data/mockShipments";
+import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ShipmentDetailSidebar from "@/components/ShipmentDetailSidebar";
 import InvoicesDialog from "@/components/InvoicesDialog";
@@ -34,12 +34,17 @@ const modeColor: Record<string, string> = {
 };
 
 const eventChipColor: Record<string, string> = {
-  Delivered: "bg-success/10 text-success",
-  "In Transit": "bg-primary/10 text-primary",
-  "Pickup Scheduled": "bg-warning/10 text-warning",
+  Delivered: "text-success",
+  "In Transit": "text-primary",
+  "Pickup Scheduled": "text-warning",
+  "Arrived at Port": "text-primary",
+  "Departed": "text-primary",
+  "Out for Delivery": "text-warning",
+  "In Air Transit": "text-primary",
+  "Vessel Delayed": "text-destructive",
 };
 
-// Action column IDs - these go to the far right with no header label
+// Action column IDs
 const ACTION_COL_IDS = ["exceptions", "invoices", "tags", "remarks"];
 
 const ACTION_TOOLTIPS: Record<string, string> = {
@@ -47,6 +52,19 @@ const ACTION_TOOLTIPS: Record<string, string> = {
   invoices: "Invoices — related documents",
   tags: "Tags — categorize shipment",
   remarks: "Remarks — comments & notes",
+};
+
+// Milestone labels
+const MILESTONE_LABELS = ["PKP", "DPT", "ARR", "POD"] as const;
+const MILESTONE_FULL = ["Pickup", "Departed", "Arrived at destination", "Proof of Delivery"];
+
+// Helper: get short date from full date string
+const shortDate = (d: string | null | undefined) => d ? d.split(" ")[0] : null;
+
+// Helper: get last event date from events array
+const getLastEventDate = (s: Shipment): string => {
+  const completed = s.events.filter(e => e.completed);
+  return completed.length > 0 ? completed[completed.length - 1].date : "";
 };
 
 // --- column definition ---
@@ -78,124 +96,137 @@ const createColumns = (): ColumnDef[] => [
       </span>
     ),
   },
+  // HBL / MBL (2 lines)
   {
-    id: "fileNumber", label: "File No.", align: "left", minWidth: 80, defaultWidth: 110,
+    id: "hblMbl", label: "HBL / MBL", align: "left", minWidth: 100, defaultWidth: 130,
     render: (s) => (
-      <span className="text-primary font-medium text-xs">
-        <TruncatedCell text={s.fileNumber} maxW={95} />
-      </span>
+      <div className="leading-tight">
+        <div className="text-xs font-medium text-foreground">H: {s.houseBill}</div>
+        <div className="text-[11px] text-muted-foreground">{s.masterBill}</div>
+      </div>
     ),
   },
+  // Origin → Dest (2 lines: codes + country)
   {
-    id: "houseBill", label: "House Bill", align: "left", minWidth: 70, defaultWidth: 82,
-    render: (s) => <span className="font-medium text-foreground text-xs">{s.houseBill}</span>,
-  },
-  {
-    id: "clientRef", label: "Client Ref.", align: "left", minWidth: 80, defaultWidth: 110,
-    render: (s) => <TruncatedCell text={s.clientRef} maxW={95} />,
-  },
-  {
-    id: "opened", label: "Opened", align: "left", minWidth: 80, defaultWidth: 95,
+    id: "originDest", label: "ORIGIN / DEST", align: "left", minWidth: 120, defaultWidth: 150,
     render: (s) => {
-      const short = s.opened.split(" ")[0];
+      const oCode = CITY_CODES[s.origin] || s.origin.slice(0, 3);
+      const dCode = CITY_CODES[s.destination] || s.destination.slice(0, 3);
+      const oCountry = COUNTRY_CODES[s.origin] || "";
+      const dCountry = COUNTRY_CODES[s.destination] || "";
       return (
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild><span className="text-muted-foreground text-xs whitespace-nowrap">{short}</span></TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">{s.opened}</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <div className="flex items-center gap-2 text-xs">
+          <div className="text-center">
+            <div className="font-semibold text-foreground">{oCode}</div>
+            <div className="text-[10px] text-muted-foreground">{oCountry}</div>
+          </div>
+          <span className="text-muted-foreground">→</span>
+          <div className="text-center">
+            <div className="font-semibold text-foreground">{dCode}</div>
+            <div className="text-[10px] text-muted-foreground">{dCountry}</div>
+          </div>
+        </div>
       );
     },
   },
+  // Departure ETD / ATD (2 lines)
   {
-    id: "origin", label: "Origin", align: "left", minWidth: 80, defaultWidth: 105,
+    id: "departure", label: "DEPARTURE\n(ETD/ATD)", align: "left", minWidth: 110, defaultWidth: 140,
     render: (s) => (
-      <span className="text-foreground text-xs whitespace-nowrap">
-        {CITY_FLAGS[s.origin] || ""} {s.origin.charAt(0) + s.origin.slice(1).toLowerCase()}
-      </span>
+      <div className="leading-tight text-xs">
+        <div className="text-muted-foreground whitespace-nowrap">
+          <span className="text-[10px] text-muted-foreground/70">ETD:</span> {shortDate(s.etd) || "—"}
+        </div>
+        <div className="whitespace-nowrap">
+          <span className="text-[10px] text-muted-foreground/70">ATD:</span>{" "}
+          {s.atd ? <span className="text-foreground font-medium">{shortDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
+        </div>
+      </div>
     ),
   },
+  // Arrival ETA / ATA (2 lines)
   {
-    id: "destination", label: "Dest.", align: "left", minWidth: 80, defaultWidth: 105,
+    id: "arrival", label: "ARRIVAL\n(ETA/ATA)", align: "left", minWidth: 110, defaultWidth: 140,
     render: (s) => (
-      <span className="text-foreground text-xs whitespace-nowrap">
-        {CITY_FLAGS[s.destination] || ""} {s.destination.charAt(0) + s.destination.slice(1).toLowerCase()}
-      </span>
+      <div className="leading-tight text-xs">
+        <div className="text-muted-foreground whitespace-nowrap">
+          <span className="text-[10px] text-muted-foreground/70">ETA:</span> {shortDate(s.eta) || "—"}
+        </div>
+        <div className="whitespace-nowrap">
+          <span className="text-[10px] text-muted-foreground/70">ATA:</span>{" "}
+          {s.ata ? <span className="text-foreground font-medium">{shortDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
+        </div>
+      </div>
     ),
   },
+  // Shipper / Consignee (2 lines)
   {
-    id: "shipper", label: "Shipper", align: "left", minWidth: 80, defaultWidth: 120,
-    render: (s) => <TruncatedCell text={s.shipper} maxW={110} />,
-  },
-  {
-    id: "consignee", label: "Consignee", align: "left", minWidth: 80, defaultWidth: 120,
-    render: (s) => <TruncatedCell text={s.consignee} maxW={110} />,
-  },
-  {
-    id: "containers", label: "Cnt.", align: "left", minWidth: 40, defaultWidth: 45,
-    render: (s) => s.containerCount > 0
-      ? <span className="text-xs font-medium text-foreground">{s.containerCount}</span>
-      : <span className="text-muted-foreground text-xs">—</span>,
-  },
-  {
-    id: "etd", label: "ETD", align: "left", minWidth: 70, defaultWidth: 82,
-    render: (s) => {
-      const short = s.etd.split(" ")[0];
-      return (
-        <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild>
-          <span className="text-muted-foreground text-xs whitespace-nowrap">{short}</span>
-        </TooltipTrigger><TooltipContent side="top" className="text-xs">{s.etd}</TooltipContent></Tooltip></TooltipProvider>
-      );
-    },
-  },
-  {
-    id: "atd", label: "ATD", align: "left", minWidth: 70, defaultWidth: 82,
-    render: (s) => {
-      if (!s.atd) return <span className="text-muted-foreground text-xs">—</span>;
-      const short = s.atd.split(" ")[0];
-      return (
-        <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild>
-          <span className="text-destructive font-medium text-xs whitespace-nowrap">{short}</span>
-        </TooltipTrigger><TooltipContent side="top" className="text-xs">{s.atd}</TooltipContent></Tooltip></TooltipProvider>
-      );
-    },
-  },
-  {
-    id: "eta", label: "ETA", align: "left", minWidth: 70, defaultWidth: 82,
-    render: (s) => {
-      const short = s.eta.split(" ")[0];
-      return (
-        <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild>
-          <span className="text-muted-foreground text-xs whitespace-nowrap">{short}</span>
-        </TooltipTrigger><TooltipContent side="top" className="text-xs">{s.eta}</TooltipContent></Tooltip></TooltipProvider>
-      );
-    },
-  },
-  {
-    id: "ata", label: "ATA", align: "left", minWidth: 70, defaultWidth: 82,
-    render: (s) => {
-      if (!s.ata) return <span className="text-muted-foreground text-xs">—</span>;
-      const short = s.ata.split(" ")[0];
-      return (
-        <TooltipProvider delayDuration={200}><Tooltip><TooltipTrigger asChild>
-          <span className="text-destructive font-medium text-xs whitespace-nowrap">{short}</span>
-        </TooltipTrigger><TooltipContent side="top" className="text-xs">{s.ata}</TooltipContent></Tooltip></TooltipProvider>
-      );
-    },
-  },
-  {
-    id: "lastEvent", label: "Last Event", align: "left", minWidth: 100, defaultWidth: 120,
+    id: "shipperConsignee", label: "SHIPPER / CONSIGNEE", align: "left", minWidth: 130, defaultWidth: 180,
     render: (s) => (
-      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${eventChipColor[s.lastEvent] || "bg-muted text-foreground"}`}>
-        {s.lastEvent}
-      </span>
+      <div className="leading-tight">
+        <div className="text-xs font-medium text-foreground"><TruncatedCell text={s.shipper} maxW={165} /></div>
+        <div className="text-[11px] text-muted-foreground"><TruncatedCell text={s.consignee} maxW={165} /></div>
+      </div>
     ),
   },
-  { id: "pickupReq", label: "P.Req", align: "left", minWidth: 40, defaultWidth: 45, render: (s) => s.pickupRequest ? <Check className="w-3.5 h-3.5 text-success" /> : null },
-  { id: "pickup", label: "P.Up", align: "left", minWidth: 40, defaultWidth: 45, render: (s) => s.pickup ? <Check className="w-3.5 h-3.5 text-success" /> : null },
-  { id: "customs", label: "Cust.", align: "left", minWidth: 40, defaultWidth: 45, render: (s) => s.customs ? <Check className="w-3.5 h-3.5 text-success" /> : null },
-  { id: "pod", label: "POD", align: "left", minWidth: 40, defaultWidth: 45, render: (s) => s.pod ? <Check className="w-3.5 h-3.5 text-success" /> : null },
+  // Client Ref
+  {
+    id: "clientRef", label: "CLIENT\nREF", align: "left", minWidth: 80, defaultWidth: 100,
+    render: (s) => <TruncatedCell text={s.clientRef} maxW={90} />,
+  },
+  // Last Event (2 lines: event name + date)
+  {
+    id: "lastEvent", label: "LAST EVENT", align: "left", minWidth: 110, defaultWidth: 140,
+    render: (s) => {
+      const date = getLastEventDate(s);
+      return (
+        <div className="leading-tight">
+          <div className={`text-xs font-semibold whitespace-nowrap ${eventChipColor[s.lastEvent] || "text-foreground"}`}>
+            {s.lastEvent}
+          </div>
+          {date && <div className="text-[10px] text-muted-foreground">{date}</div>}
+        </div>
+      );
+    },
+  },
+  // Milestones (5 steps with tooltips)
+  {
+    id: "milestones", label: "MILESTONES", align: "left", minWidth: 160, defaultWidth: 200,
+    render: (s) => {
+      // Map statusSteps to milestone indicators: pickup(1), departed(2), arrived(3), delivered(4)
+      const steps = s.statusSteps.slice(1); // skip "Order Accepted"
+      return (
+        <div className="flex items-center gap-1.5">
+          {steps.map((step, i) => (
+            <TooltipProvider key={i} delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col items-center gap-0.5">
+                    {step.completed ? (
+                      <CircleCheck className="w-4 h-4 text-success" />
+                    ) : step.active ? (
+                      <Circle className="w-4 h-4 text-primary fill-primary/20" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-muted-foreground/30" />
+                    )}
+                    <span className={`text-[9px] font-medium ${step.completed ? "text-foreground" : "text-muted-foreground/50"}`}>
+                      {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
+                    </span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  <div className="font-semibold">{MILESTONE_FULL[i] || step.label}</div>
+                  {step.date && <div className="text-muted-foreground">{step.date}</div>}
+                  {step.location && <div className="text-muted-foreground">{step.location}</div>}
+                  {step.description && <div>{step.description}</div>}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
+      );
+    },
+  },
   // --- Actions (far right, no header label) ---
   {
     id: "exceptions", label: "Exc.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
