@@ -227,6 +227,8 @@ const createColumns = (): ColumnDef[] => [
 ];
 
 const ShipmentTable = () => {
+  const STATUS_FILTERS = ["All", "In Transit", "Delivered", "Pickup Scheduled"] as const;
+
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -234,6 +236,9 @@ const ShipmentTable = () => {
   const [eventsShipment, setEventsShipment] = useState<Shipment | null>(null);
   const [tagsShipment, setTagsShipment] = useState<Shipment | null>(null);
   const [remarksShipment, setRemarksShipment] = useState<Shipment | null>(null);
+  const [activeStatus, setActiveStatus] = useState<string>("All");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [columns, setColumns] = useState<ColumnDef[]>(createColumns);
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
