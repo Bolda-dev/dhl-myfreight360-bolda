@@ -67,8 +67,13 @@ const ACTION_TOOLTIPS: Record<string, string> = {
 const MILESTONE_LABELS = ["PKP", "DPT", "ARR", "POD"] as const;
 const MILESTONE_FULL = ["Pickup", "Departed", "Arrived at destination", "Proof of Delivery"];
 
-// Helper: get short date from full date string
-const shortDate = (d: string | null | undefined) => d ? d.split(" ")[0] : null;
+// Helper: format date to "Sep 22, 2025"
+const formatDate = (d: string | null | undefined): string | null => {
+  if (!d) return null;
+  const parsed = new Date(d);
+  if (isNaN(parsed.getTime())) return d.split(" ")[0];
+  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
 
 // Helper: get last event date from events array
 const getLastEventDate = (s: Shipment): string => {
@@ -147,11 +152,11 @@ const createColumns = (): ColumnDef[] => [
       return (
         <div className="leading-tight text-xs">
           <div className="text-muted-foreground whitespace-nowrap">
-            <span className="text-[10px] text-muted-foreground/70">ETD:</span> {shortDate(s.etd) || "—"}
+            <span className="text-[10px] text-muted-foreground/70">ETD:</span> {formatDate(s.etd) || "—"}
           </div>
           <div className="whitespace-nowrap">
             <span className="text-[10px] text-muted-foreground/70">ATD:</span>{" "}
-            {s.atd ? <span className={atdColor}>{shortDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
+            {s.atd ? <span className={atdColor}>{formatDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
           </div>
         </div>
       );
@@ -166,11 +171,11 @@ const createColumns = (): ColumnDef[] => [
       return (
         <div className="leading-tight text-xs">
           <div className="text-muted-foreground whitespace-nowrap">
-            <span className="text-[10px] text-muted-foreground/70">ETA:</span> {shortDate(s.eta) || "—"}
+            <span className="text-[10px] text-muted-foreground/70">ETA:</span> {formatDate(s.eta) || "—"}
           </div>
           <div className="whitespace-nowrap">
             <span className="text-[10px] text-muted-foreground/70">ATA:</span>{" "}
-            {s.ata ? <span className={ataColor}>{shortDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
+            {s.ata ? <span className={ataColor}>{formatDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
           </div>
         </div>
       );
