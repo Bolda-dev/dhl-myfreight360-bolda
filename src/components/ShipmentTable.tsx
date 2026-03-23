@@ -492,7 +492,7 @@ const ShipmentTable = () => {
                           </Tooltip>
                         </TooltipProvider>
                       ) : (
-                        <span className="cursor-grab active:cursor-grabbing text-xs">{col.label}</span>
+                        <span className="cursor-grab active:cursor-grabbing text-xs whitespace-pre-line leading-tight">{col.label}</span>
                       )}
                       {!isAction && (
                         <div
