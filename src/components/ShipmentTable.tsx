@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark } from "@/data/mockShipments";
-import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle } from "lucide-react";
+import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ShipmentDetailSidebar from "@/components/ShipmentDetailSidebar";
 import InvoicesDialog from "@/components/InvoicesDialog";
@@ -33,22 +33,31 @@ const modeColor: Record<string, string> = {
   Rail: "bg-[hsl(var(--mode-rail)/.08)] text-[hsl(var(--mode-rail))]",
 };
 
-const eventChipColor: Record<string, string> = {
-  Delivered: "text-success",
-  "In Transit": "text-primary",
-  "Pickup Scheduled": "text-warning",
-  "Arrived at Port": "text-primary",
-  "Departed": "text-primary",
-  "Out for Delivery": "text-warning",
-  "In Air Transit": "text-primary",
-  "Vessel Delayed": "text-destructive",
+const eventChipStyle: Record<string, string> = {
+  Delivered: "bg-success/10 text-success border-success/20",
+  "In Transit": "bg-primary/10 text-primary border-primary/20",
+  "Pickup Scheduled": "bg-warning/10 text-warning border-warning/20",
+  "Arrived at Port": "bg-primary/10 text-primary border-primary/20",
+  "Departed": "bg-primary/10 text-primary border-primary/20",
+  "Out for Delivery": "bg-warning/10 text-warning border-warning/20",
+  "In Air Transit": "bg-primary/10 text-primary border-primary/20",
+  "Vessel Delayed": "bg-destructive/10 text-destructive border-destructive/20",
+};
+
+// Helper: compare dates to determine if late
+const isDateLate = (estimated: string | null | undefined, actual: string | null | undefined): boolean | null => {
+  if (!estimated || !actual) return null;
+  const eDate = new Date(estimated);
+  const aDate = new Date(actual);
+  return aDate > eDate;
 };
 
 // Action column IDs
-const ACTION_COL_IDS = ["exceptions", "invoices", "tags", "remarks"];
+const ACTION_COL_IDS = ["exceptions", "containers", "invoices", "tags", "remarks"];
 
 const ACTION_TOOLTIPS: Record<string, string> = {
   exceptions: "Exceptions — shipment alerts",
+  containers: "Containers — container details",
   invoices: "Invoices — related documents",
   tags: "Tags — categorize shipment",
   remarks: "Remarks — comments & notes",
@@ -129,35 +138,43 @@ const createColumns = (): ColumnDef[] => [
       );
     },
   },
-  // Departure ETD / ATD (2 lines)
+  // Departure ETD / ATD (2 lines) with color logic
   {
     id: "departure", label: "DEPARTURE\n(ETD/ATD)", align: "left", minWidth: 110, defaultWidth: 140,
-    render: (s) => (
-      <div className="leading-tight text-xs">
-        <div className="text-muted-foreground whitespace-nowrap">
-          <span className="text-[10px] text-muted-foreground/70">ETD:</span> {shortDate(s.etd) || "—"}
+    render: (s) => {
+      const late = isDateLate(s.etd, s.atd);
+      const atdColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
+      return (
+        <div className="leading-tight text-xs">
+          <div className="text-muted-foreground whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/70">ETD:</span> {shortDate(s.etd) || "—"}
+          </div>
+          <div className="whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/70">ATD:</span>{" "}
+            {s.atd ? <span className={atdColor}>{shortDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
+          </div>
         </div>
-        <div className="whitespace-nowrap">
-          <span className="text-[10px] text-muted-foreground/70">ATD:</span>{" "}
-          {s.atd ? <span className="text-foreground font-medium">{shortDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
-        </div>
-      </div>
-    ),
+      );
+    },
   },
-  // Arrival ETA / ATA (2 lines)
+  // Arrival ETA / ATA (2 lines) with color logic
   {
     id: "arrival", label: "ARRIVAL\n(ETA/ATA)", align: "left", minWidth: 110, defaultWidth: 140,
-    render: (s) => (
-      <div className="leading-tight text-xs">
-        <div className="text-muted-foreground whitespace-nowrap">
-          <span className="text-[10px] text-muted-foreground/70">ETA:</span> {shortDate(s.eta) || "—"}
+    render: (s) => {
+      const late = isDateLate(s.eta, s.ata);
+      const ataColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
+      return (
+        <div className="leading-tight text-xs">
+          <div className="text-muted-foreground whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/70">ETA:</span> {shortDate(s.eta) || "—"}
+          </div>
+          <div className="whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/70">ATA:</span>{" "}
+            {s.ata ? <span className={ataColor}>{shortDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
+          </div>
         </div>
-        <div className="whitespace-nowrap">
-          <span className="text-[10px] text-muted-foreground/70">ATA:</span>{" "}
-          {s.ata ? <span className="text-foreground font-medium">{shortDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
-        </div>
-      </div>
-    ),
+      );
+    },
   },
   // Shipper / Consignee (2 lines)
   {
@@ -174,54 +191,66 @@ const createColumns = (): ColumnDef[] => [
     id: "clientRef", label: "CLIENT\nREF", align: "left", minWidth: 80, defaultWidth: 100,
     render: (s) => <TruncatedCell text={s.clientRef} maxW={90} />,
   },
-  // Last Event (2 lines: event name + date)
+  // Last Event (badge + date + location)
   {
-    id: "lastEvent", label: "LAST EVENT", align: "left", minWidth: 110, defaultWidth: 140,
+    id: "lastEvent", label: "LAST EVENT", align: "left", minWidth: 130, defaultWidth: 160,
     render: (s) => {
-      const date = getLastEventDate(s);
+      const completedEvents = s.events.filter(e => e.completed);
+      const lastEvt = completedEvents.length > 0 ? completedEvents[completedEvents.length - 1] : null;
+      const chipClass = eventChipStyle[s.lastEvent] || "bg-muted text-foreground border-border";
       return (
         <div className="leading-tight">
-          <div className={`text-xs font-semibold whitespace-nowrap ${eventChipColor[s.lastEvent] || "text-foreground"}`}>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${chipClass}`}>
             {s.lastEvent}
-          </div>
-          {date && <div className="text-[10px] text-muted-foreground">{date}</div>}
+          </span>
+          {lastEvt && (
+            <div className="mt-0.5">
+              <div className="text-[10px] text-muted-foreground">{lastEvt.date}</div>
+              <div className="text-[10px] text-muted-foreground/70">{lastEvt.location}</div>
+            </div>
+          )}
         </div>
       );
     },
   },
-  // Milestones (5 steps with tooltips)
+  // Milestones (5 steps with connecting lines)
   {
-    id: "milestones", label: "MILESTONES", align: "left", minWidth: 160, defaultWidth: 200,
+    id: "milestones", label: "MILESTONES", align: "left", minWidth: 180, defaultWidth: 220,
     render: (s) => {
-      // Map statusSteps to milestone indicators: pickup(1), departed(2), arrived(3), delivered(4)
       const steps = s.statusSteps.slice(1); // skip "Order Accepted"
       return (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center">
           {steps.map((step, i) => (
-            <TooltipProvider key={i} delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex flex-col items-center gap-0.5">
-                    {step.completed ? (
-                      <CircleCheck className="w-4 h-4 text-success" />
-                    ) : step.active ? (
-                      <Circle className="w-4 h-4 text-primary fill-primary/20" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-muted-foreground/30" />
-                    )}
-                    <span className={`text-[9px] font-medium ${step.completed ? "text-foreground" : "text-muted-foreground/50"}`}>
-                      {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  <div className="font-semibold">{MILESTONE_FULL[i] || step.label}</div>
-                  {step.date && <div className="text-muted-foreground">{step.date}</div>}
-                  {step.location && <div className="text-muted-foreground">{step.location}</div>}
-                  {step.description && <div>{step.description}</div>}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div key={i} className="flex items-center">
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex flex-col items-center gap-0.5">
+                      {step.completed ? (
+                        <CircleCheck className="w-4 h-4 text-success" />
+                      ) : step.active ? (
+                        <Circle className="w-4 h-4 text-primary fill-primary/20" />
+                      ) : (
+                        <Circle className="w-4 h-4 text-muted-foreground/30" />
+                      )}
+                      <span className={`text-[9px] font-medium ${step.completed ? "text-foreground" : "text-muted-foreground/50"}`}>
+                        {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <div className="font-semibold">{MILESTONE_FULL[i] || step.label}</div>
+                    {step.date && <div className="text-muted-foreground">{step.date}</div>}
+                    {step.location && <div className="text-muted-foreground">{step.location}</div>}
+                    {step.description && <div>{step.description}</div>}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              {/* Connecting line between milestones */}
+              {i < steps.length - 1 && (
+                <div className={`w-4 h-0.5 mx-0.5 mt-[-10px] ${step.completed ? "bg-success" : "bg-muted-foreground/20"}`} />
+              )}
+            </div>
           ))}
         </div>
       );
@@ -232,33 +261,48 @@ const createColumns = (): ColumnDef[] => [
     id: "exceptions", label: "Exc.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
     render: (s) => s.exceptions > 0
       ? <span className="inline-flex items-center gap-0.5 text-warning font-semibold text-xs"><AlertTriangle className="w-3 h-3" />{s.exceptions}</span>
-      : null,
+      : <span className="inline-flex items-center text-muted-foreground/30"><AlertTriangle className="w-3 h-3" /></span>,
+  },
+  {
+    id: "containers", label: "Cnt.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
+    render: (s) => s.containerCount > 0
+      ? <span className="inline-flex items-center gap-0.5 text-primary font-semibold text-xs"><Container className="w-3 h-3" />{s.containerCount}</span>
+      : <span className="inline-flex items-center text-muted-foreground/30"><Container className="w-3 h-3" /></span>,
   },
   {
     id: "invoices", label: "Inv.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => (
-      <button onClick={() => h.openInvoices(s)} className="inline-flex items-center gap-0.5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-accent rounded px-1 py-0.5 transition-colors">
-        <FileText className="w-3 h-3" />{s.invoiceCount}
-      </button>
-    ),
+    render: (s, h) => {
+      const hasInvoices = s.invoiceCount > 0;
+      return (
+        <button onClick={() => h.openInvoices(s)} className={`inline-flex items-center gap-0.5 text-xs font-medium rounded px-1 py-0.5 transition-colors ${hasInvoices ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
+          <FileText className="w-3 h-3" />{hasInvoices ? s.invoiceCount : ""}
+        </button>
+      );
+    },
   },
   {
     id: "tags", label: "Tags", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => (
-      <button onClick={() => h.openTags(s)} className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:bg-accent rounded px-1 py-0.5 transition-colors">
-        <Tag className="w-3 h-3" />
-        {s.tags.length > 0 && <span className="font-medium">{s.tags.length}</span>}
-      </button>
-    ),
+    render: (s, h) => {
+      const hasTags = s.tags.length > 0;
+      return (
+        <button onClick={() => h.openTags(s)} className={`inline-flex items-center gap-0.5 text-xs rounded px-1 py-0.5 transition-colors ${hasTags ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
+          <Tag className="w-3 h-3" />
+          {hasTags && <span className="font-medium">{s.tags.length}</span>}
+        </button>
+      );
+    },
   },
   {
     id: "remarks", label: "Rem.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => (
-      <button onClick={() => h.openRemarks(s)} className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:bg-accent rounded px-1 py-0.5 transition-colors">
-        <MessageSquare className="w-3 h-3" />
-        {s.remarks.length > 0 && <span className="font-medium">{s.remarks.length}</span>}
-      </button>
-    ),
+    render: (s, h) => {
+      const hasRemarks = s.remarks.length > 0;
+      return (
+        <button onClick={() => h.openRemarks(s)} className={`inline-flex items-center gap-0.5 text-xs rounded px-1 py-0.5 transition-colors ${hasRemarks ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
+          <MessageSquare className="w-3 h-3" />
+          {hasRemarks && <span className="font-medium">{s.remarks.length}</span>}
+        </button>
+      );
+    },
   },
 ];
 
