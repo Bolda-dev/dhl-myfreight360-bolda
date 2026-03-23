@@ -1,12 +1,6 @@
 import dhlLogo from "@/assets/dhl-logo.png";
-import { LayoutDashboard, Box, Settings, Bell, User, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Box, Settings, Bell, User, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   Popover,
   PopoverContent,
@@ -24,75 +18,57 @@ const Navbar = () => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   return (
-    <aside className="h-full w-14 hover:w-14 bg-sidebar-background border-r border-sidebar-border flex flex-col items-center py-3 gap-1 shrink-0 z-20">
-      {/* Logo */}
-      <div className="w-9 h-9 flex items-center justify-center mb-4">
-        <img src={dhlLogo} alt="DHL" className="w-7 h-7 object-contain" />
+    <header className="h-11 bg-navbar border-b border-navbar-border flex items-center px-4 gap-1 shrink-0 z-20">
+      {/* Logo + brand */}
+      <div className="flex items-center gap-2 mr-6">
+        <img src={dhlLogo} alt="DHL" className="h-5 object-contain" />
+        <span className="text-sm font-semibold text-navbar-foreground tracking-tight">MyFreight360</span>
       </div>
 
       {/* Nav items */}
-      <TooltipProvider delayDuration={0}>
-        <nav className="flex flex-col items-center gap-1 flex-1">
-          {navItems.map((item) => (
-            <Popover
-              key={item.label}
-              open={openMenu === item.label}
-              onOpenChange={(v) => setOpenMenu(v ? item.label : null)}
-            >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PopoverTrigger asChild>
-                    <button
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                        openMenu === item.label
-                          ? "bg-sidebar-accent text-sidebar-primary"
-                          : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-primary"
-                      }`}
-                    >
-                      <item.icon className="w-5 h-5" />
-                    </button>
-                  </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="text-xs">
-                  {item.label}
-                </TooltipContent>
-              </Tooltip>
-              <PopoverContent side="right" align="start" className="w-48 p-1.5" sideOffset={8}>
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1.5">
-                  {item.label}
-                </div>
-                {item.submenu.map((sub) => (
-                  <button
-                    key={sub}
-                    className="w-full text-left px-2 py-1.5 text-sm rounded hover:bg-accent transition-colors flex items-center justify-between group"
-                    onClick={() => setOpenMenu(null)}
-                  >
-                    {sub}
-                    <ChevronRight className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </button>
-                ))}
-              </PopoverContent>
-            </Popover>
-          ))}
-        </nav>
-      </TooltipProvider>
+      <nav className="flex items-center gap-0.5 flex-1">
+        {navItems.map((item) => (
+          <Popover
+            key={item.label}
+            open={openMenu === item.label}
+            onOpenChange={(v) => setOpenMenu(v ? item.label : null)}
+          >
+            <PopoverTrigger asChild>
+              <button
+                className={`h-7 px-2.5 rounded flex items-center gap-1.5 text-xs font-medium transition-colors ${
+                  openMenu === item.label
+                    ? "bg-accent text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                }`}
+              >
+                <item.icon className="w-3.5 h-3.5" />
+                {item.label}
+                <ChevronDown className="w-3 h-3 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-44 p-1" sideOffset={4}>
+              {item.submenu.map((sub) => (
+                <button
+                  key={sub}
+                  className="w-full text-left px-2.5 py-1.5 text-xs rounded hover:bg-accent transition-colors text-foreground"
+                  onClick={() => setOpenMenu(null)}
+                >
+                  {sub}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
+        ))}
+      </nav>
 
-      {/* User avatar at bottom */}
-      <TooltipProvider delayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button className="w-10 h-10 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-primary transition-colors mt-auto">
-              <div className="w-7 h-7 rounded-full bg-accent flex items-center justify-center">
-                <User className="w-4 h-4" />
-              </div>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">
-            John Admin
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </aside>
+      {/* User */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">John Admin</span>
+        <div className="w-6 h-6 rounded-full bg-accent flex items-center justify-center">
+          <User className="w-3.5 h-3.5 text-muted-foreground" />
+        </div>
+      </div>
+    </header>
   );
 };
 
