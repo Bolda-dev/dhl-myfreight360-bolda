@@ -462,8 +462,8 @@ const ShipmentTable = () => {
       </div>
 
       {/* Status bar */}
-      <div className="flex items-center justify-between px-4 py-1.5 border-t text-xs text-muted-foreground shrink-0">
-        <span>{shipments.length} records</span>
+      <div className="flex items-center justify-between px-3 py-1 border-t text-[11px] text-muted-foreground shrink-0">
+        <span>{filteredShipments.length} of {shipments.length} records</span>
       </div>
 
       {/* Sidebar detail */}
