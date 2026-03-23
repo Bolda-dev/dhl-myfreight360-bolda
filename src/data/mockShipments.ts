@@ -2,6 +2,7 @@ export interface Shipment {
   id: string;
   fileNumber: string;
   houseBill: string;
+  masterBill: string;
   clientRef: string;
   opened: string;
   transportMode: "Air" | "Ocean" | "Rail";
