@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { mockShipments, CITY_FLAGS, type Shipment, type Remark } from "@/data/mockShipments";
-import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Sailboat, TramFront, Search, RefreshCw, Download, X, Columns3 } from "lucide-react";
+import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3 } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ShipmentDetailSidebar from "@/components/ShipmentDetailSidebar";
 import InvoicesDialog from "@/components/InvoicesDialog";
@@ -22,15 +22,15 @@ const TruncatedCell = ({ text, maxW = 100 }: { text: string; maxW?: number }) =>
 );
 
 const modeIcon: Record<string, React.ReactNode> = {
-  Air: <Plane className="w-3 h-3" />,
-  Ocean: <Sailboat className="w-3 h-3" />,
-  Rail: <TramFront className="w-3 h-3" />,
+  Air: <Plane className="w-3.5 h-3.5" />,
+  Ocean: <Ship className="w-3.5 h-3.5" />,
+  Rail: <Truck className="w-3.5 h-3.5" />,
 };
 
 const modeColor: Record<string, string> = {
-  Air: "bg-[hsl(var(--mode-air)/.1)] text-[hsl(var(--mode-air))]",
-  Ocean: "bg-[hsl(var(--mode-ocean)/.1)] text-[hsl(var(--mode-ocean))]",
-  Rail: "bg-[hsl(var(--mode-rail)/.1)] text-[hsl(var(--mode-rail))]",
+  Air: "bg-[hsl(var(--mode-air)/.08)] text-[hsl(var(--mode-air))]",
+  Ocean: "bg-[hsl(var(--mode-ocean)/.08)] text-[hsl(var(--mode-ocean))]",
+  Rail: "bg-[hsl(var(--mode-rail)/.08)] text-[hsl(var(--mode-rail))]",
 };
 
 const eventChipColor: Record<string, string> = {
@@ -69,6 +69,15 @@ interface TableHelpers {
 }
 
 const createColumns = (): ColumnDef[] => [
+  // --- Mode (leftmost) ---
+  {
+    id: "transportMode", label: "Mode", align: "left", minWidth: 75, defaultWidth: 90,
+    render: (s) => (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap ${modeColor[s.transportMode]}`}>
+        {modeIcon[s.transportMode]}{s.transportMode === "Rail" ? "Road" : s.transportMode === "Ocean" ? "Sea" : s.transportMode}
+      </span>
+    ),
+  },
   {
     id: "fileNumber", label: "File No.", align: "left", minWidth: 80, defaultWidth: 110,
     render: (s) => (
@@ -192,7 +201,7 @@ const createColumns = (): ColumnDef[] => [
     id: "exceptions", label: "Exc.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
     render: (s) => s.exceptions > 0
       ? <span className="inline-flex items-center gap-0.5 text-warning font-semibold text-xs"><AlertTriangle className="w-3 h-3" />{s.exceptions}</span>
-      : <Check className="w-3.5 h-3.5 text-success" />,
+      : null,
   },
   {
     id: "invoices", label: "Inv.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
@@ -218,15 +227,6 @@ const createColumns = (): ColumnDef[] => [
         <MessageSquare className="w-3 h-3" />
         {s.remarks.length > 0 && <span className="font-medium">{s.remarks.length}</span>}
       </button>
-    ),
-  },
-  // --- Mode (rightmost) ---
-  {
-    id: "transportMode", label: "Mode", align: "left", minWidth: 65, defaultWidth: 85,
-    render: (s) => (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${modeColor[s.transportMode]}`}>
-        {modeIcon[s.transportMode]}{s.transportMode}
-      </span>
     ),
   },
 ];
