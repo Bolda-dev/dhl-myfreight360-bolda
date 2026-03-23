@@ -596,7 +596,7 @@ const ShipmentTable = () => {
       <ColumnManagerDialog
         open={columnManagerOpen}
         onClose={() => setColumnManagerOpen(false)}
-        allColumns={ALL_COLUMNS.map((c) => ({ id: c.id, label: c.label }))}
+        allColumns={DATA_COLUMNS.map((c) => ({ id: c.id, label: c.label }))}
         visibleColumnIds={visibleColumnIds}
         onSave={setVisibleColumnIds}
       />
