@@ -261,33 +261,48 @@ const createColumns = (): ColumnDef[] => [
     id: "exceptions", label: "Exc.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
     render: (s) => s.exceptions > 0
       ? <span className="inline-flex items-center gap-0.5 text-warning font-semibold text-xs"><AlertTriangle className="w-3 h-3" />{s.exceptions}</span>
-      : null,
+      : <span className="inline-flex items-center text-muted-foreground/30"><AlertTriangle className="w-3 h-3" /></span>,
+  },
+  {
+    id: "containers", label: "Cnt.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
+    render: (s) => s.containerCount > 0
+      ? <span className="inline-flex items-center gap-0.5 text-primary font-semibold text-xs"><Container className="w-3 h-3" />{s.containerCount}</span>
+      : <span className="inline-flex items-center text-muted-foreground/30"><Container className="w-3 h-3" /></span>,
   },
   {
     id: "invoices", label: "Inv.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => (
-      <button onClick={() => h.openInvoices(s)} className="inline-flex items-center gap-0.5 text-xs font-medium text-muted-foreground hover:text-primary hover:bg-accent rounded px-1 py-0.5 transition-colors">
-        <FileText className="w-3 h-3" />{s.invoiceCount}
-      </button>
-    ),
+    render: (s, h) => {
+      const hasInvoices = s.invoiceCount > 0;
+      return (
+        <button onClick={() => h.openInvoices(s)} className={`inline-flex items-center gap-0.5 text-xs font-medium rounded px-1 py-0.5 transition-colors ${hasInvoices ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
+          <FileText className="w-3 h-3" />{hasInvoices ? s.invoiceCount : ""}
+        </button>
+      );
+    },
   },
   {
     id: "tags", label: "Tags", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => (
-      <button onClick={() => h.openTags(s)} className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:bg-accent rounded px-1 py-0.5 transition-colors">
-        <Tag className="w-3 h-3" />
-        {s.tags.length > 0 && <span className="font-medium">{s.tags.length}</span>}
-      </button>
-    ),
+    render: (s, h) => {
+      const hasTags = s.tags.length > 0;
+      return (
+        <button onClick={() => h.openTags(s)} className={`inline-flex items-center gap-0.5 text-xs rounded px-1 py-0.5 transition-colors ${hasTags ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
+          <Tag className="w-3 h-3" />
+          {hasTags && <span className="font-medium">{s.tags.length}</span>}
+        </button>
+      );
+    },
   },
   {
     id: "remarks", label: "Rem.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => (
-      <button onClick={() => h.openRemarks(s)} className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-primary hover:bg-accent rounded px-1 py-0.5 transition-colors">
-        <MessageSquare className="w-3 h-3" />
-        {s.remarks.length > 0 && <span className="font-medium">{s.remarks.length}</span>}
-      </button>
-    ),
+    render: (s, h) => {
+      const hasRemarks = s.remarks.length > 0;
+      return (
+        <button onClick={() => h.openRemarks(s)} className={`inline-flex items-center gap-0.5 text-xs rounded px-1 py-0.5 transition-colors ${hasRemarks ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
+          <MessageSquare className="w-3 h-3" />
+          {hasRemarks && <span className="font-medium">{s.remarks.length}</span>}
+        </button>
+      );
+    },
   },
 ];
 
