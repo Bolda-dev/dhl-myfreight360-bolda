@@ -22,15 +22,15 @@ const TruncatedCell = ({ text, maxW = 100 }: { text: string; maxW?: number }) =>
 );
 
 const modeIcon: Record<string, React.ReactNode> = {
-  Air: <Plane className="w-3 h-3" />,
-  Ocean: <Sailboat className="w-3 h-3" />,
-  Rail: <TramFront className="w-3 h-3" />,
+  Air: <Plane className="w-3.5 h-3.5" />,
+  Ocean: <Ship className="w-3.5 h-3.5" />,
+  Rail: <Truck className="w-3.5 h-3.5" />,
 };
 
 const modeColor: Record<string, string> = {
-  Air: "bg-[hsl(var(--mode-air)/.1)] text-[hsl(var(--mode-air))]",
-  Ocean: "bg-[hsl(var(--mode-ocean)/.1)] text-[hsl(var(--mode-ocean))]",
-  Rail: "bg-[hsl(var(--mode-rail)/.1)] text-[hsl(var(--mode-rail))]",
+  Air: "bg-[hsl(var(--mode-air)/.08)] text-[hsl(var(--mode-air))]",
+  Ocean: "bg-[hsl(var(--mode-ocean)/.08)] text-[hsl(var(--mode-ocean))]",
+  Rail: "bg-[hsl(var(--mode-rail)/.08)] text-[hsl(var(--mode-rail))]",
 };
 
 const eventChipColor: Record<string, string> = {
