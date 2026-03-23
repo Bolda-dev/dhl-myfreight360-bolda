@@ -356,9 +356,9 @@ const ShipmentTable = () => {
   });
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm flex flex-col h-full overflow-hidden">
-      {/* Toolbar */}
-      <div className="flex items-center gap-2 px-3 py-1.5 border-b shrink-0">
+    <div className="flex flex-col h-full overflow-hidden">
+      {/* Toolbar - separate from table */}
+      <div className="flex items-center gap-2 px-1 py-1.5 shrink-0">
         {/* Search */}
         {searchOpen ? (
           <div className="flex items-center gap-1.5 bg-accent rounded px-2 py-1">
@@ -410,6 +410,9 @@ const ShipmentTable = () => {
           <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>
+
+      {/* Table card */}
+      <div className="bg-card rounded-lg border shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden">
 
       {/* Scrollable table area */}
       <div className="flex-1 min-h-0 overflow-auto" ref={scrollRef}>
