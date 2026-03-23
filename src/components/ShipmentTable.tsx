@@ -204,9 +204,8 @@ const createColumns = (): ColumnDef[] => [
             {s.lastEvent}
           </span>
           {lastEvt && (
-            <div className="mt-0.5">
-              <div className="text-[10px] text-muted-foreground">{lastEvt.date}</div>
-              <div className="text-[10px] text-muted-foreground/70">{lastEvt.location}</div>
+            <div className="mt-1 text-[10px] text-muted-foreground">
+              {lastEvt.location}, {lastEvt.date}
             </div>
           )}
         </div>
