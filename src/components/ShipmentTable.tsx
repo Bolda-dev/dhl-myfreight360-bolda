@@ -33,15 +33,23 @@ const modeColor: Record<string, string> = {
   Rail: "bg-[hsl(var(--mode-rail)/.08)] text-[hsl(var(--mode-rail))]",
 };
 
-const eventChipColor: Record<string, string> = {
-  Delivered: "text-success",
-  "In Transit": "text-primary",
-  "Pickup Scheduled": "text-warning",
-  "Arrived at Port": "text-primary",
-  "Departed": "text-primary",
-  "Out for Delivery": "text-warning",
-  "In Air Transit": "text-primary",
-  "Vessel Delayed": "text-destructive",
+const eventChipStyle: Record<string, string> = {
+  Delivered: "bg-success/10 text-success border-success/20",
+  "In Transit": "bg-primary/10 text-primary border-primary/20",
+  "Pickup Scheduled": "bg-warning/10 text-warning border-warning/20",
+  "Arrived at Port": "bg-primary/10 text-primary border-primary/20",
+  "Departed": "bg-primary/10 text-primary border-primary/20",
+  "Out for Delivery": "bg-warning/10 text-warning border-warning/20",
+  "In Air Transit": "bg-primary/10 text-primary border-primary/20",
+  "Vessel Delayed": "bg-destructive/10 text-destructive border-destructive/20",
+};
+
+// Helper: compare dates to determine if late
+const isDateLate = (estimated: string | null | undefined, actual: string | null | undefined): boolean | null => {
+  if (!estimated || !actual) return null;
+  const eDate = new Date(estimated);
+  const aDate = new Date(actual);
+  return aDate > eDate;
 };
 
 // Action column IDs
