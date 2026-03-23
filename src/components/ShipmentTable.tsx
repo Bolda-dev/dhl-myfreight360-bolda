@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { mockShipments, CITY_FLAGS, type Shipment, type Remark } from "@/data/mockShipments";
-import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Sailboat, TramFront, CircleDot } from "lucide-react";
+import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Sailboat, TramFront, CircleDot, Search, RefreshCw, Download, X } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ShipmentDetailSidebar from "@/components/ShipmentDetailSidebar";
 import InvoicesDialog from "@/components/InvoicesDialog";
