@@ -468,6 +468,7 @@ const ShipmentTable = () => {
       <div className="flex items-center justify-between px-3 py-1 border-t text-[11px] text-muted-foreground shrink-0">
         <span>{filteredShipments.length} of {shipments.length} records</span>
       </div>
+      </div>
 
       {/* Sidebar detail */}
       <ShipmentDetailSidebar shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
