@@ -307,6 +307,8 @@ const createColumns = (): ColumnDef[] => [
 ];
 
 const ALL_COLUMNS = createColumns();
+const DATA_COLUMNS = ALL_COLUMNS.filter((c) => !c.isAction);
+const ACTION_COLUMNS = ALL_COLUMNS.filter((c) => c.isAction);
 
 const ShipmentTable = () => {
   const STATUS_FILTERS = ["All", "In Transit", "Delivered", "Pickup Scheduled"] as const;
@@ -323,14 +325,16 @@ const ShipmentTable = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [columnManagerOpen, setColumnManagerOpen] = useState(false);
 
-  const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => ALL_COLUMNS.map((c) => c.id));
+  const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
     const w: Record<string, number> = {};
     ALL_COLUMNS.forEach((c) => (w[c.id] = c.defaultWidth));
     return w;
   });
 
-  const visibleColumns = visibleColumnIds.map((id) => ALL_COLUMNS.find((c) => c.id === id)!).filter(Boolean);
+  // Only data columns are reorderable/hideable; action columns always pinned right
+  const visibleDataColumns = visibleColumnIds.map((id) => DATA_COLUMNS.find((c) => c.id === id)!).filter(Boolean);
+  const visibleColumns = [...visibleDataColumns, ...ACTION_COLUMNS];
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
