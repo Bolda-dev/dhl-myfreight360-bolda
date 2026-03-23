@@ -69,6 +69,15 @@ interface TableHelpers {
 }
 
 const createColumns = (): ColumnDef[] => [
+  // --- Mode (leftmost) ---
+  {
+    id: "transportMode", label: "Mode", align: "left", minWidth: 75, defaultWidth: 90,
+    render: (s) => (
+      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-semibold whitespace-nowrap ${modeColor[s.transportMode]}`}>
+        {modeIcon[s.transportMode]}{s.transportMode === "Rail" ? "Road" : s.transportMode === "Ocean" ? "Sea" : s.transportMode}
+      </span>
+    ),
+  },
   {
     id: "fileNumber", label: "File No.", align: "left", minWidth: 80, defaultWidth: 110,
     render: (s) => (
