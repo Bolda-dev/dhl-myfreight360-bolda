@@ -213,39 +213,44 @@ const createColumns = (): ColumnDef[] => [
       );
     },
   },
-  // Milestones (5 steps with tooltips)
+  // Milestones (5 steps with connecting lines)
   {
-    id: "milestones", label: "MILESTONES", align: "left", minWidth: 160, defaultWidth: 200,
+    id: "milestones", label: "MILESTONES", align: "left", minWidth: 180, defaultWidth: 220,
     render: (s) => {
-      // Map statusSteps to milestone indicators: pickup(1), departed(2), arrived(3), delivered(4)
       const steps = s.statusSteps.slice(1); // skip "Order Accepted"
       return (
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center">
           {steps.map((step, i) => (
-            <TooltipProvider key={i} delayDuration={150}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex flex-col items-center gap-0.5">
-                    {step.completed ? (
-                      <CircleCheck className="w-4 h-4 text-success" />
-                    ) : step.active ? (
-                      <Circle className="w-4 h-4 text-primary fill-primary/20" />
-                    ) : (
-                      <Circle className="w-4 h-4 text-muted-foreground/30" />
-                    )}
-                    <span className={`text-[9px] font-medium ${step.completed ? "text-foreground" : "text-muted-foreground/50"}`}>
-                      {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
-                    </span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-xs">
-                  <div className="font-semibold">{MILESTONE_FULL[i] || step.label}</div>
-                  {step.date && <div className="text-muted-foreground">{step.date}</div>}
-                  {step.location && <div className="text-muted-foreground">{step.location}</div>}
-                  {step.description && <div>{step.description}</div>}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div key={i} className="flex items-center">
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex flex-col items-center gap-0.5">
+                      {step.completed ? (
+                        <CircleCheck className="w-4 h-4 text-success" />
+                      ) : step.active ? (
+                        <Circle className="w-4 h-4 text-primary fill-primary/20" />
+                      ) : (
+                        <Circle className="w-4 h-4 text-muted-foreground/30" />
+                      )}
+                      <span className={`text-[9px] font-medium ${step.completed ? "text-foreground" : "text-muted-foreground/50"}`}>
+                        {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <div className="font-semibold">{MILESTONE_FULL[i] || step.label}</div>
+                    {step.date && <div className="text-muted-foreground">{step.date}</div>}
+                    {step.location && <div className="text-muted-foreground">{step.location}</div>}
+                    {step.description && <div>{step.description}</div>}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              {/* Connecting line between milestones */}
+              {i < steps.length - 1 && (
+                <div className={`w-4 h-0.5 mx-0.5 mt-[-10px] ${step.completed ? "bg-success" : "bg-muted-foreground/20"}`} />
+              )}
+            </div>
           ))}
         </div>
       );
