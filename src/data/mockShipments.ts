@@ -2,6 +2,7 @@ export interface Shipment {
   id: string;
   fileNumber: string;
   houseBill: string;
+  masterBill: string;
   clientRef: string;
   opened: string;
   transportMode: "Air" | "Ocean" | "Rail";
@@ -76,36 +77,36 @@ export const AVAILABLE_TAGS = [
 ];
 
 export const CITY_FLAGS: Record<string, string> = {
-  "HONG KONG": "🇭🇰",
-  "TEL AVIV": "🇮🇱",
-  "LOS ANGELES": "🇺🇸",
-  "HAMBURG": "🇩🇪",
-  "SINGAPORE": "🇸🇬",
-  "BEIJING": "🇨🇳",
-  "NEW YORK": "🇺🇸",
-  "LONDON": "🇬🇧",
-  "SHANGHAI": "🇨🇳",
-  "TOKYO": "🇯🇵",
-  "DUBAI": "🇦🇪",
-  "ROTTERDAM": "🇳🇱",
-  "MUMBAI": "🇮🇳",
-  "SYDNEY": "🇦🇺",
-  "BUSAN": "🇰🇷",
-  "ISTANBUL": "🇹🇷",
-  "SAO PAULO": "🇧🇷",
-  "VANCOUVER": "🇨🇦",
-  "CAPE TOWN": "🇿🇦",
-  "BANGKOK": "🇹🇭",
-  "JEDDAH": "🇸🇦",
-  "ANTWERP": "🇧🇪",
-  "PIRAEUS": "🇬🇷",
-  "GENOA": "🇮🇹",
-  "MARSEILLE": "🇫🇷",
-  "CHITTAGONG": "🇧🇩",
-  "LAEM CHABANG": "🇹🇭",
-  "FELIXSTOWE": "🇬🇧",
-  "SANTOS": "🇧🇷",
-  "HAIFA": "🇮🇱",
+  "HONG KONG": "🇭🇰", "TEL AVIV": "🇮🇱", "LOS ANGELES": "🇺🇸", "HAMBURG": "🇩🇪",
+  "SINGAPORE": "🇸🇬", "BEIJING": "🇨🇳", "NEW YORK": "🇺🇸", "LONDON": "🇬🇧",
+  "SHANGHAI": "🇨🇳", "TOKYO": "🇯🇵", "DUBAI": "🇦🇪", "ROTTERDAM": "🇳🇱",
+  "MUMBAI": "🇮🇳", "SYDNEY": "🇦🇺", "BUSAN": "🇰🇷", "ISTANBUL": "🇹🇷",
+  "SAO PAULO": "🇧🇷", "VANCOUVER": "🇨🇦", "CAPE TOWN": "🇿🇦", "BANGKOK": "🇹🇭",
+  "JEDDAH": "🇸🇦", "ANTWERP": "🇧🇪", "PIRAEUS": "🇬🇷", "GENOA": "🇮🇹",
+  "MARSEILLE": "🇫🇷", "CHITTAGONG": "🇧🇩", "LAEM CHABANG": "🇹🇭",
+  "FELIXSTOWE": "🇬🇧", "SANTOS": "🇧🇷", "HAIFA": "🇮🇱",
+};
+
+export const CITY_CODES: Record<string, string> = {
+  "HONG KONG": "HKG", "TEL AVIV": "TLV", "LOS ANGELES": "LAX", "HAMBURG": "HAM",
+  "SINGAPORE": "SIN", "BEIJING": "PEK", "NEW YORK": "JFK", "LONDON": "LHR",
+  "SHANGHAI": "SHA", "TOKYO": "NRT", "DUBAI": "DXB", "ROTTERDAM": "RTM",
+  "MUMBAI": "BOM", "SYDNEY": "SYD", "BUSAN": "PUS", "ISTANBUL": "IST",
+  "SAO PAULO": "GRU", "VANCOUVER": "YVR", "CAPE TOWN": "CPT", "BANGKOK": "BKK",
+  "JEDDAH": "JED", "ANTWERP": "ANR", "PIRAEUS": "PIR", "GENOA": "GOA",
+  "MARSEILLE": "MRS", "CHITTAGONG": "CGP", "LAEM CHABANG": "LCB",
+  "FELIXSTOWE": "FXT", "SANTOS": "SSZ", "HAIFA": "HFA",
+};
+
+export const COUNTRY_CODES: Record<string, string> = {
+  "HONG KONG": "HK", "TEL AVIV": "IL", "LOS ANGELES": "US", "HAMBURG": "DE",
+  "SINGAPORE": "SG", "BEIJING": "CN", "NEW YORK": "US", "LONDON": "UK",
+  "SHANGHAI": "CN", "TOKYO": "JP", "DUBAI": "AE", "ROTTERDAM": "NL",
+  "MUMBAI": "IN", "SYDNEY": "AU", "BUSAN": "KR", "ISTANBUL": "TR",
+  "SAO PAULO": "BR", "VANCOUVER": "CA", "CAPE TOWN": "ZA", "BANGKOK": "TH",
+  "JEDDAH": "SA", "ANTWERP": "BE", "PIRAEUS": "GR", "GENOA": "IT",
+  "MARSEILLE": "FR", "CHITTAGONG": "BD", "LAEM CHABANG": "TH",
+  "FELIXSTOWE": "UK", "SANTOS": "BR", "HAIFA": "IL",
 };
 
 // Helper to generate a basic shipment quickly
@@ -119,7 +120,8 @@ function gen(
   const completedAll = lastEvent === "Delivered";
   const inTransit = lastEvent === "In Transit";
   return {
-    id, fileNumber, houseBill, clientRef, opened, transportMode: mode, origin, destination,
+    id, fileNumber, houseBill, masterBill: `M: ${houseBill.slice(0,3)}${id.padStart(3,'0')}`,
+    clientRef, opened, transportMode: mode, origin, destination,
     shipper, consignee, exceptions, invoiceCount, containerCount, legs: null, etd, atd, eta, ata,
     lastEvent, pickupRequest: pr, pickup: pu, customs: cu, pod,
     tags, remarks: [], invoices: [],
@@ -148,6 +150,7 @@ const originalShipments: Shipment[] = [
     id: "1",
     fileNumber: "s457567567",
     houseBill: "8XG8943",
+    masterBill: "M: 001299-AX",
     clientRef: "345345345-345634",
     opened: "9/21/2025 06:54 AM",
     transportMode: "Air",
@@ -188,6 +191,7 @@ const originalShipments: Shipment[] = [
     id: "2",
     fileNumber: "s456856867567",
     houseBill: "8XG8944",
+    masterBill: "M: 445611-ZY",
     clientRef: "234232-345634",
     opened: "9/20/2025 08:30 AM",
     transportMode: "Air",
@@ -223,6 +227,7 @@ const originalShipments: Shipment[] = [
     id: "3",
     fileNumber: "s997567645",
     houseBill: "8XG8945",
+    masterBill: "M: 223399-BJ",
     clientRef: "99976865-345634",
     opened: "9/19/2025 11:15 AM",
     transportMode: "Ocean",
@@ -258,6 +263,7 @@ const originalShipments: Shipment[] = [
     id: "4",
     fileNumber: "s4575675234",
     houseBill: "8XG8948",
+    masterBill: "M: 887766-CM",
     clientRef: "11234323-345634",
     opened: "9/16/2025 07:30 AM",
     transportMode: "Rail",
@@ -300,6 +306,7 @@ const originalShipments: Shipment[] = [
     id: "5",
     fileNumber: "s978978978",
     houseBill: "8XG8949",
+    masterBill: "M: 998877-LN",
     clientRef: "cc45665-345634",
     opened: "9/15/2025 11:20 AM",
     transportMode: "Air",
