@@ -120,7 +120,8 @@ function gen(
   const completedAll = lastEvent === "Delivered";
   const inTransit = lastEvent === "In Transit";
   return {
-    id, fileNumber, houseBill, clientRef, opened, transportMode: mode, origin, destination,
+    id, fileNumber, houseBill, masterBill: `M: ${houseBill.slice(0,3)}${id.padStart(3,'0')}`,
+    clientRef, opened, transportMode: mode, origin, destination,
     shipper, consignee, exceptions, invoiceCount, containerCount, legs: null, etd, atd, eta, ata,
     lastEvent, pickupRequest: pr, pickup: pu, customs: cu, pod,
     tags, remarks: [], invoices: [],
