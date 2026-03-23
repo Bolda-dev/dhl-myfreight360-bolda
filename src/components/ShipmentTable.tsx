@@ -152,11 +152,11 @@ const createColumns = (): ColumnDef[] => [
       return (
         <div className="leading-tight text-xs">
           <div className="text-muted-foreground whitespace-nowrap">
-            <span className="text-[10px] text-muted-foreground/70">ETD:</span> {shortDate(s.etd) || "—"}
+            <span className="text-[10px] text-muted-foreground/70">ETD:</span> {formatDate(s.etd) || "—"}
           </div>
           <div className="whitespace-nowrap">
             <span className="text-[10px] text-muted-foreground/70">ATD:</span>{" "}
-            {s.atd ? <span className={atdColor}>{shortDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
+            {s.atd ? <span className={atdColor}>{formatDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
           </div>
         </div>
       );
@@ -171,11 +171,11 @@ const createColumns = (): ColumnDef[] => [
       return (
         <div className="leading-tight text-xs">
           <div className="text-muted-foreground whitespace-nowrap">
-            <span className="text-[10px] text-muted-foreground/70">ETA:</span> {shortDate(s.eta) || "—"}
+            <span className="text-[10px] text-muted-foreground/70">ETA:</span> {formatDate(s.eta) || "—"}
           </div>
           <div className="whitespace-nowrap">
             <span className="text-[10px] text-muted-foreground/70">ATA:</span>{" "}
-            {s.ata ? <span className={ataColor}>{shortDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
+            {s.ata ? <span className={ataColor}>{formatDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
           </div>
         </div>
       );
