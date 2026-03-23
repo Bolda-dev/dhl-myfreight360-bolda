@@ -138,35 +138,43 @@ const createColumns = (): ColumnDef[] => [
       );
     },
   },
-  // Departure ETD / ATD (2 lines)
+  // Departure ETD / ATD (2 lines) with color logic
   {
     id: "departure", label: "DEPARTURE\n(ETD/ATD)", align: "left", minWidth: 110, defaultWidth: 140,
-    render: (s) => (
-      <div className="leading-tight text-xs">
-        <div className="text-muted-foreground whitespace-nowrap">
-          <span className="text-[10px] text-muted-foreground/70">ETD:</span> {shortDate(s.etd) || "—"}
+    render: (s) => {
+      const late = isDateLate(s.etd, s.atd);
+      const atdColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
+      return (
+        <div className="leading-tight text-xs">
+          <div className="text-muted-foreground whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/70">ETD:</span> {shortDate(s.etd) || "—"}
+          </div>
+          <div className="whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/70">ATD:</span>{" "}
+            {s.atd ? <span className={atdColor}>{shortDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
+          </div>
         </div>
-        <div className="whitespace-nowrap">
-          <span className="text-[10px] text-muted-foreground/70">ATD:</span>{" "}
-          {s.atd ? <span className="text-foreground font-medium">{shortDate(s.atd)}</span> : <span className="text-muted-foreground">—</span>}
-        </div>
-      </div>
-    ),
+      );
+    },
   },
-  // Arrival ETA / ATA (2 lines)
+  // Arrival ETA / ATA (2 lines) with color logic
   {
     id: "arrival", label: "ARRIVAL\n(ETA/ATA)", align: "left", minWidth: 110, defaultWidth: 140,
-    render: (s) => (
-      <div className="leading-tight text-xs">
-        <div className="text-muted-foreground whitespace-nowrap">
-          <span className="text-[10px] text-muted-foreground/70">ETA:</span> {shortDate(s.eta) || "—"}
+    render: (s) => {
+      const late = isDateLate(s.eta, s.ata);
+      const ataColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
+      return (
+        <div className="leading-tight text-xs">
+          <div className="text-muted-foreground whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/70">ETA:</span> {shortDate(s.eta) || "—"}
+          </div>
+          <div className="whitespace-nowrap">
+            <span className="text-[10px] text-muted-foreground/70">ATA:</span>{" "}
+            {s.ata ? <span className={ataColor}>{shortDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
+          </div>
         </div>
-        <div className="whitespace-nowrap">
-          <span className="text-[10px] text-muted-foreground/70">ATA:</span>{" "}
-          {s.ata ? <span className="text-foreground font-medium">{shortDate(s.ata)}</span> : <span className="text-muted-foreground">—</span>}
-        </div>
-      </div>
-    ),
+      );
+    },
   },
   // Shipper / Consignee (2 lines)
   {
