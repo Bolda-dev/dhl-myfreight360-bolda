@@ -58,6 +58,10 @@
     --table-header: 220 14% 96%;
     --table-row-hover: 220 14% 98%;
     --table-border: 220 13% 92%;
+
+    --mode-air: 213 72% 45%;
+    --mode-ocean: 199 65% 42%;
+    --mode-rail: 262 52% 47%;
   }
 }
 
