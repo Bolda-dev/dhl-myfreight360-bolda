@@ -440,7 +440,7 @@ const ShipmentTable = () => {
             </tr>
           </thead>
           <tbody>
-            {shipments.map((s) => (
+            {filteredShipments.map((s) => (
               <tr
                 key={s.id}
                 className={`border-b last:border-0 hover:bg-table-row-hover transition-colors cursor-pointer ${draggedCol ? "pointer-events-none" : ""}`}
