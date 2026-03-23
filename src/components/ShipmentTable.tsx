@@ -191,17 +191,24 @@ const createColumns = (): ColumnDef[] => [
     id: "clientRef", label: "CLIENT\nREF", align: "left", minWidth: 80, defaultWidth: 100,
     render: (s) => <TruncatedCell text={s.clientRef} maxW={90} />,
   },
-  // Last Event (2 lines: event name + date)
+  // Last Event (badge + date + location)
   {
-    id: "lastEvent", label: "LAST EVENT", align: "left", minWidth: 110, defaultWidth: 140,
+    id: "lastEvent", label: "LAST EVENT", align: "left", minWidth: 130, defaultWidth: 160,
     render: (s) => {
-      const date = getLastEventDate(s);
+      const completedEvents = s.events.filter(e => e.completed);
+      const lastEvt = completedEvents.length > 0 ? completedEvents[completedEvents.length - 1] : null;
+      const chipClass = eventChipStyle[s.lastEvent] || "bg-muted text-foreground border-border";
       return (
         <div className="leading-tight">
-          <div className={`text-xs font-semibold whitespace-nowrap ${eventChipColor[s.lastEvent] || "text-foreground"}`}>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${chipClass}`}>
             {s.lastEvent}
-          </div>
-          {date && <div className="text-[10px] text-muted-foreground">{date}</div>}
+          </span>
+          {lastEvt && (
+            <div className="mt-0.5">
+              <div className="text-[10px] text-muted-foreground">{lastEvt.date}</div>
+              <div className="text-[10px] text-muted-foreground/70">{lastEvt.location}</div>
+            </div>
+          )}
         </div>
       );
     },
