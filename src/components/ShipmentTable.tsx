@@ -191,24 +191,37 @@ const createColumns = (): ColumnDef[] => [
     id: "clientRef", label: "CLIENT\nREF", align: "left", minWidth: 80, defaultWidth: 100,
     render: (s) => <TruncatedCell text={s.clientRef} maxW={90} />,
   },
-  // Last Event (badge + date + location)
+  // Last Event (badge + date, tooltip with full details)
   {
     id: "lastEvent", label: "LAST EVENT", align: "left", minWidth: 130, defaultWidth: 160,
     render: (s) => {
       const completedEvents = s.events.filter(e => e.completed);
       const lastEvt = completedEvents.length > 0 ? completedEvents[completedEvents.length - 1] : null;
       const chipClass = eventChipStyle[s.lastEvent] || "bg-muted text-foreground border-border";
+      // Extract date only (no time)
+      const dateOnly = lastEvt?.date?.replace(/,?\s*\d{1,2}:\d{2}\s*(AM|PM)?/i, "") || "";
       return (
-        <div className="leading-tight">
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${chipClass}`}>
-            {s.lastEvent}
-          </span>
-          {lastEvt && (
-            <div className="mt-1 text-[10px] text-muted-foreground">
-              {lastEvt.location}, {lastEvt.date}
-            </div>
-          )}
-        </div>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="leading-tight cursor-default">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${chipClass}`}>
+                  {s.lastEvent}
+                </span>
+                {dateOnly && (
+                  <div className="mt-1 text-[10px] text-muted-foreground">{dateOnly}</div>
+                )}
+              </div>
+            </TooltipTrigger>
+            {lastEvt && (
+              <TooltipContent side="top" className="text-xs max-w-xs">
+                <div className="font-semibold">{lastEvt.title}</div>
+                <div className="text-muted-foreground">{lastEvt.description}</div>
+                <div className="text-muted-foreground">{lastEvt.location} — {lastEvt.date}</div>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       );
     },
   },
