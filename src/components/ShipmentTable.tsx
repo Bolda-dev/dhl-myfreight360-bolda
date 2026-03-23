@@ -53,10 +53,11 @@ const isDateLate = (estimated: string | null | undefined, actual: string | null 
 };
 
 // Action column IDs
-const ACTION_COL_IDS = ["exceptions", "invoices", "tags", "remarks"];
+const ACTION_COL_IDS = ["exceptions", "containers", "invoices", "tags", "remarks"];
 
 const ACTION_TOOLTIPS: Record<string, string> = {
   exceptions: "Exceptions — shipment alerts",
+  containers: "Containers — container details",
   invoices: "Invoices — related documents",
   tags: "Tags — categorize shipment",
   remarks: "Remarks — comments & notes",
