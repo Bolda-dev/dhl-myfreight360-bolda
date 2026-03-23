@@ -201,7 +201,7 @@ const createColumns = (): ColumnDef[] => [
     id: "exceptions", label: "Exc.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
     render: (s) => s.exceptions > 0
       ? <span className="inline-flex items-center gap-0.5 text-warning font-semibold text-xs"><AlertTriangle className="w-3 h-3" />{s.exceptions}</span>
-      : <Check className="w-3.5 h-3.5 text-success" />,
+      : null,
   },
   {
     id: "invoices", label: "Inv.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
@@ -227,15 +227,6 @@ const createColumns = (): ColumnDef[] => [
         <MessageSquare className="w-3 h-3" />
         {s.remarks.length > 0 && <span className="font-medium">{s.remarks.length}</span>}
       </button>
-    ),
-  },
-  // --- Mode (rightmost) ---
-  {
-    id: "transportMode", label: "Mode", align: "left", minWidth: 65, defaultWidth: 85,
-    render: (s) => (
-      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap ${modeColor[s.transportMode]}`}>
-        {modeIcon[s.transportMode]}{s.transportMode}
-      </span>
     ),
   },
 ];
