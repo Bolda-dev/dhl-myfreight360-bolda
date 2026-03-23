@@ -227,6 +227,7 @@ const originalShipments: Shipment[] = [
     id: "3",
     fileNumber: "s997567645",
     houseBill: "8XG8945",
+    masterBill: "M: 223399-BJ",
     clientRef: "99976865-345634",
     opened: "9/19/2025 11:15 AM",
     transportMode: "Ocean",
