@@ -297,7 +297,11 @@ const createColumns = (): ColumnDef[] => [
             const timing = getTimingStatus(step);
             const isCompleted = step.completed;
             const isActive = step.active;
+            const isLastStep = i === steps.length - 1;
             const xPos = i * (circleSize + gap);
+
+            // Active on last step = orange clock, otherwise blue
+            const activeIsLast = isActive && isLastStep;
 
             return (
               <TooltipProvider key={i} delayDuration={150}>
@@ -307,21 +311,49 @@ const createColumns = (): ColumnDef[] => [
                       <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors z-[1]
                         ${isCompleted
                           ? "border-success bg-success text-white"
-                          : isActive
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-muted-foreground/25 bg-background text-muted-foreground/30"
+                          : activeIsLast
+                            ? "border-warning bg-warning/10 text-warning"
+                            : isActive
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-muted-foreground/25 bg-background text-muted-foreground/30"
                         }`}>
                         {isCompleted ? (
                           <Check className="w-3 h-3" />
+                        ) : activeIsLast ? (
+                          <Clock className="w-3 h-3" />
+                        ) : isActive ? (
+                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                         ) : (
-                          <div className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-primary" : "bg-muted-foreground/25"}`} />
+                          <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/25" />
                         )}
                       </div>
-                      <span className={`text-[9px] font-semibold leading-none mt-0.5 ${isCompleted ? "text-foreground" : isActive ? "text-primary" : "text-muted-foreground/40"}`}>
+                      <span className={`text-[9px] font-semibold leading-none mt-0.5 ${isCompleted ? "text-foreground" : activeIsLast ? "text-warning" : isActive ? "text-primary" : "text-muted-foreground/40"}`}>
                         {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
                       </span>
                     </div>
                   </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs max-w-[200px]">
+                    <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
+                    {isActive && !isCompleted && (
+                      <div className={`font-medium ${activeIsLast ? "text-warning" : "text-primary"}`}>
+                        Currently in progress
+                      </div>
+                    )}
+                    {step.date && (
+                      <div className={`font-medium ${timingColor(timing)}`}>
+                        {step.date} • {timingLabel(timing)}
+                      </div>
+                    )}
+                    {step.location && <div className="text-muted-foreground">{step.location}</div>}
+                    {step.description && <div className="text-muted-foreground mt-0.5">{step.description}</div>}
+                    {!step.date && !isCompleted && !isActive && (
+                      <div className="text-muted-foreground italic">Not yet reached</div>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            );
+          })}
                   <TooltipContent side="top" className="text-xs max-w-[200px]">
                     <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
                     {step.date && (

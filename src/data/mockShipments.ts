@@ -316,7 +316,7 @@ const originalShipments: Shipment[] = [
     consignee: "UK TECH DISTRIBUTORS",
     exceptions: 0, invoiceCount: 2, containerCount: 0, legs: null,
     etd: "9/18/2025 02:00 PM", atd: "9/18/2025 01:45 PM", eta: "9/18/2025 05:30 PM", ata: "9/18/2025 05:15 PM",
-    lastEvent: "Delivered", pickupRequest: true, pickup: true, customs: true, pod: true,
+    lastEvent: "Out for Delivery", pickupRequest: true, pickup: true, customs: true, pod: false,
     tags: [],
     remarks: [{ id: "r7", author: "James Brown", text: "Standard delivery, no special requirements", date: "Sep 15, 12:00 PM" }],
     invoices: [
@@ -328,15 +328,14 @@ const originalShipments: Shipment[] = [
       { label: "Order Accepted", completed: true, active: false },
       { label: "Pickup", completed: true, active: false },
       { label: "Departed", completed: true, active: false },
-      { label: "Arrived", completed: true, active: false },
-      { label: "Delivered", completed: true, active: false, date: "Sep 18, 07:00 PM", location: "London", description: "Delivered to consignee" },
+      { label: "Arrived", completed: true, active: false, date: "Sep 18, 05:15 PM", location: "London Heathrow", description: "Flight arrived" },
+      { label: "Delivered", completed: false, active: true, date: "Sep 18, 07:00 PM", location: "London", description: "Out for delivery to consignee" },
     ],
     events: [
       { title: "Cargo Picked Up", type: "PICKUP", description: "Cargo collected from shipper", location: "New York", date: "Sep 17, 09:00 AM", completed: true },
       { title: "Departed Origin", type: "DEPARTURE", description: "Flight departed JFK", location: "New York", date: "Sep 18, 01:45 PM", completed: true },
       { title: "Arrived at Destination", type: "ARRIVAL", description: "Flight arrived at Heathrow", location: "London", date: "Sep 18, 05:15 PM", completed: true },
-      { title: "Customs Cleared", type: "CUSTOMS", description: "UK customs clearance completed", location: "London", date: "Sep 18, 06:30 PM", completed: true },
-      { title: "Delivered", type: "DELIVERY", description: "Delivered to consignee", location: "London", date: "Sep 18, 07:00 PM", completed: true },
+      { title: "Out for Delivery", type: "DELIVERY", description: "Shipment is out for delivery to consignee", location: "London", date: "Sep 18, 06:30 PM", completed: false },
     ],
   },
 ];
