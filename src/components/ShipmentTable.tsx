@@ -51,7 +51,7 @@ const modeColor: Record<string, string> = {
 const eventChipStyle: Record<string, string> = {
   Delivered: "bg-success/10 text-success border-success/20",
   "In Transit": "bg-primary/10 text-primary border-primary/20",
-  "Pickup Scheduled": "bg-warning/10 text-warning border-warning/20",
+  "Delayed": "bg-destructive/10 text-destructive border-destructive/20",
   "Arrived at Port": "bg-primary/10 text-primary border-primary/20",
   "Departed": "bg-primary/10 text-primary border-primary/20",
   "Out for Delivery": "bg-warning/10 text-warning border-warning/20",
