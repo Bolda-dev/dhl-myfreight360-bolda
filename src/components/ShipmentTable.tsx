@@ -664,7 +664,7 @@ const ShipmentTable = () => {
                       className={`${draggedCol === col.id ? "opacity-40" : ""}`}
                       style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "8px 8px" }}
                     >
-                      {col.render(s, helpers)}
+                      {col.render(s, helpers, searchQuery)}
                     </td>
                   ))}
                 </tr>
