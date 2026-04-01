@@ -61,6 +61,13 @@ export interface Container {
   type: string;
 }
 
+export interface MilestoneException {
+  title: string;
+  description: string;
+  date: string;
+  severity: "warning" | "critical";
+}
+
 export interface StatusStep {
   label: string;
   completed: boolean;
@@ -68,6 +75,7 @@ export interface StatusStep {
   date?: string;
   location?: string;
   description?: string;
+  exception?: MilestoneException;
 }
 
 export const AVAILABLE_TAGS = [
