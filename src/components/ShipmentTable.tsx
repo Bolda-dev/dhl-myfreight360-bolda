@@ -7,7 +7,7 @@ import InvoicesDialog from "@/components/InvoicesDialog";
 import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
 import TagsDialog from "@/components/TagsDialog";
 import RemarksDialog from "@/components/RemarksDialog";
-import ColumnManagerDialog from "@/components/ColumnManagerDialog";
+import ColumnManagerDialog, { type ActionVisibility } from "@/components/ColumnManagerDialog";
 
 // --- helpers ---
 const HighlightText = ({ text, query, className = "" }: { text: string; query: string; className?: string }) => {
@@ -51,7 +51,7 @@ const modeColor: Record<string, string> = {
 const eventChipStyle: Record<string, string> = {
   Delivered: "bg-success/10 text-success border-success/20",
   "In Transit": "bg-primary/10 text-primary border-primary/20",
-  "Pickup Scheduled": "bg-warning/10 text-warning border-warning/20",
+  "Delayed": "bg-destructive/10 text-destructive border-destructive/20",
   "Arrived at Port": "bg-primary/10 text-primary border-primary/20",
   "Departed": "bg-primary/10 text-primary border-primary/20",
   "Out for Delivery": "bg-warning/10 text-warning border-warning/20",
@@ -416,6 +416,10 @@ const ShipmentTable = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [columnManagerOpen, setColumnManagerOpen] = useState(false);
+  const [actionVisibility, setActionVisibility] = useState<ActionVisibility>({
+    exceptions: true, containers: true, invoices: true, tags: true, remarks: true,
+  });
+  const [mergeOriginDest, setMergeOriginDest] = useState(false);
 
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
@@ -426,7 +430,8 @@ const ShipmentTable = () => {
 
   // Only data columns are reorderable/hideable; action columns always pinned right
   const visibleDataColumns = visibleColumnIds.map((id) => DATA_COLUMNS.find((c) => c.id === id)!).filter(Boolean);
-  const visibleColumns = [...visibleDataColumns, ...ACTION_COLUMNS];
+  const filteredActionColumns = ACTION_COLUMNS.filter((c) => actionVisibility[c.id as keyof ActionVisibility]);
+  const visibleColumns = [...visibleDataColumns, ...filteredActionColumns];
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -696,6 +701,10 @@ const ShipmentTable = () => {
         allColumns={DATA_COLUMNS.map((c) => ({ id: c.id, label: c.label }))}
         visibleColumnIds={visibleColumnIds}
         onSave={setVisibleColumnIds}
+        actionVisibility={actionVisibility}
+        onActionVisibilityChange={setActionVisibility}
+        mergeOriginDest={mergeOriginDest}
+        onMergeOriginDestChange={setMergeOriginDest}
       />
     </div>
   );
