@@ -332,7 +332,7 @@ const createColumns = (): ColumnDef[] => [
                   <TooltipContent side="top" className="text-xs max-w-[200px]">
                     <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
                     {isActive && !isCompleted && (
-                      <div className={`font-medium ${activeIsLast ? "text-warning" : "text-primary"}`}>
+                      <div className="font-medium text-primary">
                         Currently in progress
                       </div>
                     )}
