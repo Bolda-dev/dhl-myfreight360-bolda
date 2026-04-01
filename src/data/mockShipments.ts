@@ -135,6 +135,27 @@ export const COUNTRY_CODES: Record<string, string> = {
   "FELIXSTOWE": "UK", "SANTOS": "BR", "HAIFA": "IL",
 };
 
+function genContainer(id: string, type: string, origin: string, destination: string): Container {
+  const goods = ["S.T.C.:17 PALLETS X 60 BAGS ON EACH PALLET", "ELECTRONIC COMPONENTS", "MACHINERY PARTS", "TEXTILE GOODS"][Math.floor(Math.random() * 4)];
+  return {
+    id, type, quantity: 1,
+    descriptionOfGoods: goods,
+    weightKg: 25000 + Math.floor(Math.random() * 2000),
+    volumeCbm: 40 + Math.floor(Math.random() * 20),
+    warehouse: "",
+    storageStatus: "Okay",
+    portDepotStatus: "Loaded on",
+    customsStatus: "Correction Auto Approved",
+    logisticStatus: "אישור סחינה ליבוא",
+    inlandStatus: "הזמנת סחינה יבוא",
+    journey: [
+      { status: "Loaded at origin", location: origin, date: "Sep 18, 10:00 AM", completed: true },
+      { status: "In transit", location: "At sea", date: "Sep 20, 08:00 AM", completed: true },
+      { status: "Arrived at port", location: destination, date: "Oct 2, 06:00 AM", completed: false },
+    ],
+  };
+}
+
 // Helper to generate a basic shipment quickly
 function gen(
   id: string, fileNumber: string, houseBill: string, clientRef: string, opened: string,
