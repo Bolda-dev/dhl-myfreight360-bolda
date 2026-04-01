@@ -218,8 +218,6 @@ const createColumns = (): ColumnDef[] => [
       const completedEvents = s.events.filter(e => e.completed);
       const lastEvt = completedEvents.length > 0 ? completedEvents[completedEvents.length - 1] : null;
       const chipClass = eventChipStyle[s.lastEvent] || "bg-muted text-foreground border-border";
-      // Extract date only (no time)
-      const dateOnly = lastEvt?.date?.replace(/,?\s*\d{1,2}:\d{2}\s*(AM|PM)?/i, "") || "";
       return (
         <TooltipProvider delayDuration={200}>
           <Tooltip>
@@ -228,9 +226,6 @@ const createColumns = (): ColumnDef[] => [
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${chipClass}`}>
                   {s.lastEvent}
                 </span>
-                {dateOnly && (
-                  <div className="mt-1 text-[10px] text-muted-foreground">{dateOnly}</div>
-                )}
               </div>
             </TooltipTrigger>
             {lastEvt && (
