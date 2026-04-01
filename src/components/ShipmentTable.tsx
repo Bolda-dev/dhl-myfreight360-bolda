@@ -358,10 +358,6 @@ const createColumns = (): ColumnDef[] => [
       );
     },
   },
-        </div>
-      );
-    },
-  },
   // --- Actions (far right, no header label) ---
   {
     id: "exceptions", label: "Exc.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
