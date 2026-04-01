@@ -274,7 +274,7 @@ const createColumns = (): ColumnDef[] => [
       const totalWidth = steps.length * circleSize + (steps.length - 1) * gap;
 
       return (
-        <div className="relative" style={{ width: totalWidth, height: 36 }}>
+        <div className="relative" style={{ width: totalWidth, height: 36, overflow: "visible" }}>
           {/* Background line (full width, centered vertically on circles) */}
           <div
             className="absolute bg-muted-foreground/20 rounded-full"
