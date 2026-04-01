@@ -109,7 +109,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
             ))}
           </TabsList>
 
-          <div className="overflow-y-auto flex-1 max-h-[calc(85vh-180px)]">
+          <div className="overflow-y-auto flex-1">
             {/* General Tab */}
             <TabsContent value="general" className="p-6 m-0 space-y-6">
               {/* Exceptions banner */}
