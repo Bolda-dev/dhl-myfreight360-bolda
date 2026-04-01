@@ -416,6 +416,10 @@ const ShipmentTable = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [columnManagerOpen, setColumnManagerOpen] = useState(false);
+  const [actionVisibility, setActionVisibility] = useState<ActionVisibility>({
+    exceptions: true, containers: true, invoices: true, tags: true, remarks: true,
+  });
+  const [mergeOriginDest, setMergeOriginDest] = useState(false);
 
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
