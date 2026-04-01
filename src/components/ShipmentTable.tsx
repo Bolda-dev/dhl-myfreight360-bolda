@@ -354,23 +354,10 @@ const createColumns = (): ColumnDef[] => [
               </TooltipProvider>
             );
           })}
-                  <TooltipContent side="top" className="text-xs max-w-[200px]">
-                    <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
-                    {step.date && (
-                      <div className={`font-medium ${timingColor(timing)}`}>
-                        {step.date} • {timingLabel(timing)}
-                      </div>
-                    )}
-                    {step.location && <div className="text-muted-foreground">{step.location}</div>}
-                    {step.description && <div className="text-muted-foreground mt-0.5">{step.description}</div>}
-                    {!step.date && !isCompleted && !isActive && (
-                      <div className="text-muted-foreground italic">Not yet reached</div>
-                    )}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            );
-          })}
+        </div>
+      );
+    },
+  },
         </div>
       );
     },
