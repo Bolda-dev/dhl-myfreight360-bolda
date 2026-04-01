@@ -56,9 +56,27 @@ export interface Invoice {
   description: string;
 }
 
+export interface ContainerJourneyStep {
+  status: string;
+  location: string;
+  date: string;
+  completed: boolean;
+}
+
 export interface Container {
   id: string;
   type: string;
+  quantity: number;
+  descriptionOfGoods: string;
+  weightKg: number;
+  volumeCbm: number;
+  warehouse: string;
+  storageStatus: "Okay" | "Alert" | "Full";
+  portDepotStatus: string;
+  customsStatus: string;
+  logisticStatus: string;
+  inlandStatus: string;
+  journey: ContainerJourneyStep[];
 }
 
 export interface MilestoneException {
