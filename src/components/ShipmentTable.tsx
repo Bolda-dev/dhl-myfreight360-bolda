@@ -200,7 +200,7 @@ const createColumns = (): ColumnDef[] => [
   {
     id: "shipperConsignee", label: "SHIPPER / CONSIGNEE", align: "left", minWidth: 130, defaultWidth: 180,
     render: (s, _h, q = "") => (
-      <div className="leading-tight">
+      <div className="space-y-1">
         <div className="text-xs font-medium text-foreground"><TruncatedCell text={s.shipper} maxW={165} query={q} /></div>
         <div className="text-[11px] text-muted-foreground"><TruncatedCell text={s.consignee} maxW={165} query={q} /></div>
       </div>
