@@ -7,7 +7,7 @@ import InvoicesDialog from "@/components/InvoicesDialog";
 import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
 import TagsDialog from "@/components/TagsDialog";
 import RemarksDialog from "@/components/RemarksDialog";
-import ColumnManagerDialog from "@/components/ColumnManagerDialog";
+import ColumnManagerDialog, { type ActionVisibility } from "@/components/ColumnManagerDialog";
 
 // --- helpers ---
 const HighlightText = ({ text, query, className = "" }: { text: string; query: string; className?: string }) => {
