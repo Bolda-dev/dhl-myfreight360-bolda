@@ -61,6 +61,13 @@ export interface Container {
   type: string;
 }
 
+export interface MilestoneException {
+  title: string;
+  description: string;
+  date: string;
+  severity: "warning" | "critical";
+}
+
 export interface StatusStep {
   label: string;
   completed: boolean;
@@ -68,6 +75,7 @@ export interface StatusStep {
   date?: string;
   location?: string;
   description?: string;
+  exception?: MilestoneException;
 }
 
 export const AVAILABLE_TAGS = [
@@ -249,7 +257,7 @@ const originalShipments: Shipment[] = [
     containers: [{ id: "MSCU1234567", type: "40HC" }, { id: "MSCU7654321", type: "40HC" }],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false, date: "Sep 19, 11:15 AM", location: "Hamburg", description: "Booking confirmed" },
-      { label: "Pickup", completed: false, active: true, date: "Sep 23, 02:30 PM", location: "Hamburg Port", description: "Pickup scheduled" },
+      { label: "Pickup", completed: false, active: true, date: "Sep 23, 02:30 PM", location: "Hamburg Port", description: "Pickup scheduled", exception: { title: "Cargo Drop Incident", description: "Abnormal drop detected during loading — package inspection required before departure.", date: "Sep 23, 01:15 PM", severity: "warning" } },
       { label: "Departed", completed: false, active: false },
       { label: "Arrived", completed: false, active: false },
       { label: "Delivered", completed: false, active: false },
@@ -291,7 +299,7 @@ const originalShipments: Shipment[] = [
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
       { label: "Pickup", completed: true, active: false, date: "Sep 18, 03:00 PM", location: "Beijing", description: "Cargo loaded" },
-      { label: "Departed", completed: false, active: true, date: "Sep 19, 07:15 AM", location: "Beijing Rail Terminal", description: "Train departed — currently in transit" },
+      { label: "Departed", completed: false, active: true, date: "Sep 19, 07:15 AM", location: "Beijing Rail Terminal", description: "Train departed — currently in transit", exception: { title: "Container Split", description: "One container was held at Alashankou border crossing due to customs inspection. Shipment has been split into two separate transports.", date: "Sep 22, 03:00 PM", severity: "critical" } },
       { label: "Arrived", completed: false, active: false },
       { label: "Delivered", completed: false, active: false },
     ],

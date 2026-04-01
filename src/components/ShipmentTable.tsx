@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark } from "@/data/mockShipments";
+import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark, type MilestoneException } from "@/data/mockShipments";
 import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container, Clock } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ShipmentDetailSidebar from "@/components/ShipmentDetailSidebar";
@@ -299,6 +299,7 @@ const createColumns = (): ColumnDef[] => [
             const isActive = step.active;
             const isLastStep = i === steps.length - 1;
             const xPos = i * (circleSize + gap);
+            const hasException = !!step.exception;
 
             const activeIsLast = isActive && isLastStep;
 
@@ -307,21 +308,26 @@ const createColumns = (): ColumnDef[] => [
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="absolute flex flex-col items-center cursor-default" style={{ left: xPos, top: 0, width: circleSize }}>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors z-10
-                        ${activeIsLast || isActive
-                          ? "border-primary bg-background text-primary"
-                          : isCompleted
-                            ? "border-success bg-success text-white"
-                            : "border-muted-foreground/25 bg-background text-muted-foreground/30"
-                        }`}>
-                        {activeIsLast ? (
-                          <Clock className="w-3 h-3" />
-                        ) : isActive ? (
-                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        ) : isCompleted ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/25" />
+                      <div className="relative">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors z-10
+                          ${activeIsLast || isActive
+                            ? "border-primary bg-background text-primary"
+                            : isCompleted
+                              ? "border-success bg-success text-white"
+                              : "border-muted-foreground/25 bg-background text-muted-foreground/30"
+                          }`}>
+                          {activeIsLast ? (
+                            <Clock className="w-3 h-3" />
+                          ) : isActive ? (
+                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                          ) : isCompleted ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/25" />
+                          )}
+                        </div>
+                        {hasException && (
+                          <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full z-20 border border-background ${step.exception!.severity === "critical" ? "bg-destructive" : "bg-warning"}`} />
                         )}
                       </div>
                       <span className={`text-[9px] font-semibold leading-none mt-0.5 ${isActive ? "text-primary" : isCompleted ? "text-foreground" : "text-muted-foreground/40"}`}>
@@ -329,7 +335,7 @@ const createColumns = (): ColumnDef[] => [
                       </span>
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs max-w-[200px]">
+                  <TooltipContent side="top" className="text-xs max-w-[220px]">
                     <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
                     {isActive && !isCompleted && (
                       <div className="font-medium text-primary">
@@ -343,6 +349,17 @@ const createColumns = (): ColumnDef[] => [
                     )}
                     {step.location && <div className="text-muted-foreground">{step.location}</div>}
                     {step.description && <div className="text-muted-foreground mt-0.5">{step.description}</div>}
+                    {hasException && (
+                      <div className={`mt-1.5 pt-1.5 border-t border-border`}>
+                        <div className={`font-semibold flex items-center gap-1 ${step.exception!.severity === "critical" ? "text-destructive" : "text-warning"}`}>
+                          <AlertTriangle className="w-3 h-3" />
+                          {step.exception!.title}
+                        </div>
+                        <div className="text-muted-foreground mt-0.5">{step.exception!.description}</div>
+                        <div className="text-muted-foreground/70 mt-0.5 text-[10px]">{step.exception!.date}</div>
+                        <div className="text-primary mt-1 text-[10px] font-medium cursor-pointer hover:underline">Click to view details →</div>
+                      </div>
+                    )}
                     {!step.date && !isCompleted && !isActive && (
                       <div className="text-muted-foreground italic">Not yet reached</div>
                     )}
@@ -355,15 +372,15 @@ const createColumns = (): ColumnDef[] => [
       );
     },
   },
-  // --- Actions (far right, no header label) ---
+  // --- Actions (far right, compact with bigger hover targets) ---
   {
-    id: "exceptions", label: "Exc.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
+    id: "exceptions", label: "Exc.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
     render: (s, h) => (
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => h.openEvents(s)} className={`inline-flex items-center gap-0.5 text-xs font-semibold rounded px-1 py-0.5 transition-colors ${s.exceptions > 0 ? "text-warning hover:text-warning/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
-              <AlertTriangle className="w-3 h-3" />{s.exceptions > 0 ? s.exceptions : ""}
+            <button onClick={() => h.openEvents(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold rounded-md w-7 h-7 transition-colors ${s.exceptions > 0 ? "text-warning hover:text-warning/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <AlertTriangle className="w-3.5 h-3.5" />{s.exceptions > 0 ? <span className="text-[10px]">{s.exceptions}</span> : null}
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">Exceptions</TooltipContent>
@@ -372,13 +389,13 @@ const createColumns = (): ColumnDef[] => [
     ),
   },
   {
-    id: "containers", label: "Cnt.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
+    id: "containers", label: "Cnt.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
     render: (s) => (
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${s.containerCount > 0 ? "text-primary" : "text-muted-foreground/30"}`}>
-              <Container className="w-3 h-3" />{s.containerCount > 0 ? s.containerCount : ""}
+            <span className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold rounded-md w-7 h-7 transition-colors cursor-default ${s.containerCount > 0 ? "text-primary hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <Container className="w-3.5 h-3.5" />{s.containerCount > 0 ? <span className="text-[10px]">{s.containerCount}</span> : null}
             </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">Containers</TooltipContent>
@@ -387,60 +404,51 @@ const createColumns = (): ColumnDef[] => [
     ),
   },
   {
-    id: "invoices", label: "Inv.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => {
-      const hasInvoices = s.invoiceCount > 0;
-      return (
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button onClick={() => h.openInvoices(s)} className={`inline-flex items-center gap-0.5 text-xs font-medium rounded px-1 py-0.5 transition-colors ${hasInvoices ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
-                <FileText className="w-3 h-3" />{hasInvoices ? s.invoiceCount : ""}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">Invoices</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    },
+    id: "invoices", label: "Inv.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
+    render: (s, h) => (
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => h.openInvoices(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs font-medium rounded-md w-7 h-7 transition-colors ${s.invoiceCount > 0 ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <FileText className="w-3.5 h-3.5" />{s.invoiceCount > 0 ? <span className="text-[10px]">{s.invoiceCount}</span> : null}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Invoices</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
   },
   {
-    id: "tags", label: "Tags", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => {
-      const hasTags = s.tags.length > 0;
-      return (
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button onClick={() => h.openTags(s)} className={`inline-flex items-center gap-0.5 text-xs rounded px-1 py-0.5 transition-colors ${hasTags ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
-                <Tag className="w-3 h-3" />
-                {hasTags && <span className="font-medium">{s.tags.length}</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">Tags</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    },
+    id: "tags", label: "Tags", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
+    render: (s, h) => (
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => h.openTags(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs rounded-md w-7 h-7 transition-colors ${s.tags.length > 0 ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <Tag className="w-3.5 h-3.5" />
+              {s.tags.length > 0 && <span className="font-medium text-[10px]">{s.tags.length}</span>}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Tags</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
   },
   {
-    id: "remarks", label: "Rem.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => {
-      const hasRemarks = s.remarks.length > 0;
-      return (
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button onClick={() => h.openRemarks(s)} className={`inline-flex items-center gap-0.5 text-xs rounded px-1 py-0.5 transition-colors ${hasRemarks ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
-                <MessageSquare className="w-3 h-3" />
-                {hasRemarks && <span className="font-medium">{s.remarks.length}</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">Remarks</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    },
+    id: "remarks", label: "Rem.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
+    render: (s, h) => (
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => h.openRemarks(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs rounded-md w-7 h-7 transition-colors ${s.remarks.length > 0 ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <MessageSquare className="w-3.5 h-3.5" />
+              {s.remarks.length > 0 && <span className="font-medium text-[10px]">{s.remarks.length}</span>}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Remarks</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
   },
 ];
 
