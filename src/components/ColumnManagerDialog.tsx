@@ -251,7 +251,7 @@ const ColumnManagerDialog = ({
               const defaults = allColumns.map(c => c.id);
               setVisible(defaults);
               setActVis({ exceptions: true, containers: true, invoices: true, tags: true, remarks: true });
-              setMerged(false);
+              setMerged(true);
             }}
             className="px-3 py-1.5 text-xs rounded border text-muted-foreground hover:bg-accent"
           >
