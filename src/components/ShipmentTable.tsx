@@ -208,7 +208,7 @@ const createColumns = (): ColumnDef[] => [
   },
   // Client Ref
   {
-    id: "clientRef", label: "CLIENT\nREF", align: "left", minWidth: 80, defaultWidth: 100,
+    id: "clientRef", label: "CLIENT REF", align: "left", minWidth: 80, defaultWidth: 100,
     render: (s, _h, q = "") => <TruncatedCell text={s.clientRef} maxW={90} query={q} />,
   },
   // Last Event (badge + date, tooltip with full details)
