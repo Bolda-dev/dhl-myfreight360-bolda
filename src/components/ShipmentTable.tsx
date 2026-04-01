@@ -10,11 +10,26 @@ import RemarksDialog from "@/components/RemarksDialog";
 import ColumnManagerDialog from "@/components/ColumnManagerDialog";
 
 // --- helpers ---
-const TruncatedCell = ({ text, maxW = 100 }: { text: string; maxW?: number }) => (
+const HighlightText = ({ text, query, className = "" }: { text: string; query: string; className?: string }) => {
+  if (!query || query.length < 1) return <span className={className}>{text}</span>;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        regex.test(part) ? <mark key={i} className="bg-yellow-200 text-inherit rounded-sm px-0.5">{part}</mark> : part
+      )}
+    </span>
+  );
+};
+
+const TruncatedCell = ({ text, maxW = 100, query = "" }: { text: string; maxW?: number; query?: string }) => (
   <TooltipProvider delayDuration={200}>
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="block truncate" style={{ maxWidth: maxW }}>{text}</span>
+        <span className="block truncate" style={{ maxWidth: maxW }}>
+          <HighlightText text={text} query={query} />
+        </span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-xs">{text}</TooltipContent>
     </Tooltip>
