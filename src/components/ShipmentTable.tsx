@@ -701,6 +701,10 @@ const ShipmentTable = () => {
         allColumns={DATA_COLUMNS.map((c) => ({ id: c.id, label: c.label }))}
         visibleColumnIds={visibleColumnIds}
         onSave={setVisibleColumnIds}
+        actionVisibility={actionVisibility}
+        onActionVisibilityChange={setActionVisibility}
+        mergeOriginDest={mergeOriginDest}
+        onMergeOriginDestChange={setMergeOriginDest}
       />
     </div>
   );
