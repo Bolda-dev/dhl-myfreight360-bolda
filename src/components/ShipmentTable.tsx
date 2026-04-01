@@ -430,7 +430,8 @@ const ShipmentTable = () => {
 
   // Only data columns are reorderable/hideable; action columns always pinned right
   const visibleDataColumns = visibleColumnIds.map((id) => DATA_COLUMNS.find((c) => c.id === id)!).filter(Boolean);
-  const visibleColumns = [...visibleDataColumns, ...ACTION_COLUMNS];
+  const filteredActionColumns = ACTION_COLUMNS.filter((c) => actionVisibility[c.id as keyof ActionVisibility]);
+  const visibleColumns = [...visibleDataColumns, ...filteredActionColumns];
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
