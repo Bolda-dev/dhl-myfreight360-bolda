@@ -798,7 +798,7 @@ const ShipmentTable = () => {
       </div>
 
       {/* Dialogs & Sidebar */}
-      <ShipmentDetailSidebar shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
+      <ShipmentDetailPopup shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
       {invoiceShipment && (
         <InvoicesDialog invoices={invoiceShipment.invoices} houseBill={invoiceShipment.houseBill} open={!!invoiceShipment} onClose={() => setInvoiceShipment(null)} />
       )}
