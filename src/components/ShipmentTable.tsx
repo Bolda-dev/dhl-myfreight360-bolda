@@ -1,8 +1,8 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark, type MilestoneException } from "@/data/mockShipments";
 import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container, Clock } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import ShipmentDetailSidebar from "@/components/ShipmentDetailSidebar";
+import ShipmentDetailPopup from "@/components/ShipmentDetailPopup";
 import InvoicesDialog from "@/components/InvoicesDialog";
 import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
 import TagsDialog from "@/components/TagsDialog";
@@ -497,6 +497,20 @@ const ShipmentTable = () => {
   const [activeStatus, setActiveStatus] = useState<string>("All");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Cmd+F / Ctrl+F to open search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        setSearchOpen(true);
+        setTimeout(() => searchInputRef.current?.focus(), 50);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
   const [columnManagerOpen, setColumnManagerOpen] = useState(false);
   const [actionVisibility, setActionVisibility] = useState<ActionVisibility>({
     exceptions: true, containers: true, invoices: true, tags: true, remarks: true,
@@ -655,6 +669,7 @@ const ShipmentTable = () => {
           <div className="flex items-center gap-1.5 bg-accent rounded px-2 py-1">
             <Search className="w-3.5 h-3.5 text-muted-foreground" />
             <input
+              ref={searchInputRef}
               autoFocus
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -729,7 +744,7 @@ const ShipmentTable = () => {
                       className={`relative group font-semibold text-foreground whitespace-nowrap select-none text-left ${
                         dragOverCol === col.id ? "bg-accent" : ""
                       } ${draggedCol === col.id ? "opacity-40" : ""}`}
-                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: isAction ? "8px 2px" : "8px 8px" }}
+                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: isAction ? "8px 4px" : "8px 8px" }}
                     >
                       {isAction ? (
                         <TooltipProvider delayDuration={200}>
@@ -766,7 +781,7 @@ const ShipmentTable = () => {
                     <td
                       key={col.id}
                       className={`${draggedCol === col.id ? "opacity-40" : ""}`}
-                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: col.isAction ? "8px 2px" : "8px 8px" }}
+                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: col.isAction ? "8px 4px" : "8px 8px" }}
                     >
                       {col.render(s, helpers, searchQuery)}
                     </td>
@@ -783,7 +798,7 @@ const ShipmentTable = () => {
       </div>
 
       {/* Dialogs & Sidebar */}
-      <ShipmentDetailSidebar shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
+      <ShipmentDetailPopup shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
       {invoiceShipment && (
         <InvoicesDialog invoices={invoiceShipment.invoices} houseBill={invoiceShipment.houseBill} open={!!invoiceShipment} onClose={() => setInvoiceShipment(null)} />
       )}
