@@ -729,7 +729,7 @@ const ShipmentTable = () => {
                       className={`relative group font-semibold text-foreground whitespace-nowrap select-none text-left ${
                         dragOverCol === col.id ? "bg-accent" : ""
                       } ${draggedCol === col.id ? "opacity-40" : ""}`}
-                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "8px 8px" }}
+                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: isAction ? "8px 2px" : "8px 8px" }}
                     >
                       {isAction ? (
                         <TooltipProvider delayDuration={200}>
