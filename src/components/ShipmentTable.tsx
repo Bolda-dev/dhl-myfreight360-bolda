@@ -274,7 +274,7 @@ const createColumns = (): ColumnDef[] => [
       const totalWidth = steps.length * circleSize + (steps.length - 1) * gap;
 
       return (
-        <div className="relative" style={{ width: totalWidth, height: 36 }}>
+        <div className="relative" style={{ width: totalWidth, height: 36, overflow: "visible" }}>
           {/* Background line (full width, centered vertically on circles) */}
           <div
             className="absolute bg-muted-foreground/20 rounded-full"
@@ -357,7 +357,7 @@ const createColumns = (): ColumnDef[] => [
                         </div>
                         <div className="text-muted-foreground mt-0.5">{step.exception!.description}</div>
                         <div className="text-muted-foreground/70 mt-0.5 text-[10px]">{step.exception!.date}</div>
-                        <div className="text-primary mt-1 text-[10px] font-medium cursor-pointer hover:underline">Click to view details →</div>
+                        
                       </div>
                     )}
                     {!step.date && !isCompleted && !isActive && (
@@ -729,7 +729,7 @@ const ShipmentTable = () => {
                       className={`relative group font-semibold text-foreground whitespace-nowrap select-none text-left ${
                         dragOverCol === col.id ? "bg-accent" : ""
                       } ${draggedCol === col.id ? "opacity-40" : ""}`}
-                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "8px 8px" }}
+                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: isAction ? "8px 2px" : "8px 8px" }}
                     >
                       {isAction ? (
                         <TooltipProvider delayDuration={200}>
@@ -766,7 +766,7 @@ const ShipmentTable = () => {
                     <td
                       key={col.id}
                       className={`${draggedCol === col.id ? "opacity-40" : ""}`}
-                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "8px 8px" }}
+                      style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: col.isAction ? "8px 2px" : "8px 8px" }}
                     >
                       {col.render(s, helpers, searchQuery)}
                     </td>
