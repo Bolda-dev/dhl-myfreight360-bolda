@@ -334,7 +334,7 @@ const originalShipments: Shipment[] = [
       { number: "INV-2025-013", date: "9/16/2025 11:00 AM", amount: 175.00, currency: "USD", status: "ISSUED", description: "Documentation" },
       { number: "INV-2025-014", date: "9/16/2025 12:00 PM", amount: 280.00, currency: "EUR", status: "OVERDUE", description: "Insurance premium" },
     ],
-    containers: [{ id: "TCKU9876543", type: "40GP" }, { id: "TCKU1239876", type: "40GP" }, { id: "TCKU5556789", type: "20GP" }],
+    containers: [genContainer("TCKU9876543", "40GP", "BEIJING", "HAMBURG"), genContainer("TCKU1239876", "40GP", "BEIJING", "HAMBURG"), genContainer("TCKU5556789", "20GP", "BEIJING", "HAMBURG")],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
       { label: "Pickup", completed: true, active: false, date: "Sep 18, 03:00 PM", location: "Beijing", description: "Cargo loaded" },
