@@ -244,9 +244,22 @@ const ColumnManagerDialog = ({
           </label>
         </div>
 
-        <div className="flex justify-end gap-2 mt-3">
-          <button onClick={onClose} className="px-3 py-1.5 text-xs rounded border text-muted-foreground hover:bg-accent">Cancel</button>
-          <button onClick={handleSave} className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90">Apply</button>
+        <div className="flex justify-between mt-3">
+          <button
+            onClick={() => {
+              const defaults = allColumns.map(c => c.id);
+              setVisible(defaults);
+              setActVis({ exceptions: true, containers: true, invoices: true, tags: true, remarks: true });
+              setMerged(false);
+            }}
+            className="px-3 py-1.5 text-xs rounded border text-muted-foreground hover:bg-accent"
+          >
+            Reset to Default
+          </button>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="px-3 py-1.5 text-xs rounded border text-muted-foreground hover:bg-accent">Cancel</button>
+            <button onClick={handleSave} className="px-3 py-1.5 text-xs rounded bg-primary text-primary-foreground hover:bg-primary/90">Apply</button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
