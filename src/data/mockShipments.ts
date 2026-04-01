@@ -290,8 +290,8 @@ const originalShipments: Shipment[] = [
     containers: [{ id: "TCKU9876543", type: "40GP" }, { id: "TCKU1239876", type: "40GP" }, { id: "TCKU5556789", type: "20GP" }],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
-      { label: "Pickup", completed: true, active: false },
-      { label: "Departed", completed: true, active: true, date: "Sep 19, 07:15 AM", location: "Beijing Rail Terminal", description: "Train departed" },
+      { label: "Pickup", completed: true, active: false, date: "Sep 18, 03:00 PM", location: "Beijing", description: "Cargo loaded" },
+      { label: "Departed", completed: false, active: true, date: "Sep 19, 07:15 AM", location: "Beijing Rail Terminal", description: "Train departed — currently in transit" },
       { label: "Arrived", completed: false, active: false },
       { label: "Delivered", completed: false, active: false },
     ],
