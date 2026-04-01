@@ -388,7 +388,7 @@ const DATA_COLUMNS = ALL_COLUMNS.filter((c) => !c.isAction);
 const ACTION_COLUMNS = ALL_COLUMNS.filter((c) => c.isAction);
 
 const ShipmentTable = () => {
-  const STATUS_FILTERS = ["All", "In Transit", "Delivered", "Pickup Scheduled"] as const;
+  const STATUS_FILTERS = ["All", "In Transit", "Delivered", "Delayed"] as const;
 
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
