@@ -497,6 +497,20 @@ const ShipmentTable = () => {
   const [activeStatus, setActiveStatus] = useState<string>("All");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Cmd+F / Ctrl+F to open search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "f") {
+        e.preventDefault();
+        setSearchOpen(true);
+        setTimeout(() => searchInputRef.current?.focus(), 50);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
   const [columnManagerOpen, setColumnManagerOpen] = useState(false);
   const [actionVisibility, setActionVisibility] = useState<ActionVisibility>({
     exceptions: true, containers: true, invoices: true, tags: true, remarks: true,
