@@ -230,45 +230,87 @@ const createColumns = (): ColumnDef[] => [
       );
     },
   },
-  // Milestones (5 steps with connecting lines)
+  // Milestones (unified progress bar)
   {
-    id: "milestones", label: "MILESTONES", align: "left", minWidth: 180, defaultWidth: 220,
+    id: "milestones", label: "MILESTONES", align: "left", minWidth: 200, defaultWidth: 240,
     render: (s) => {
       const steps = s.statusSteps.slice(1); // skip "Order Accepted"
+      // Determine timing status for tooltip coloring
+      const getTimingStatus = (step: typeof steps[0]): "ontime" | "delayed" | "late" | null => {
+        if (!step.completed && !step.active) return null;
+        if (!step.date) return step.completed ? "ontime" : null;
+        // Simple heuristic: check description for delay keywords
+        const desc = (step.description || "").toLowerCase();
+        if (desc.includes("delay") || desc.includes("late")) return "late";
+        return "ontime";
+      };
+      const timingColor = (status: "ontime" | "delayed" | "late" | null) => {
+        if (status === "ontime") return "text-success";
+        if (status === "delayed") return "text-warning";
+        if (status === "late") return "text-destructive";
+        return "text-muted-foreground";
+      };
+      const timingLabel = (status: "ontime" | "delayed" | "late" | null) => {
+        if (status === "ontime") return "On Time";
+        if (status === "delayed") return "Delayed";
+        if (status === "late") return "Late";
+        return "Pending";
+      };
+
       return (
         <div className="flex items-center">
-          {steps.map((step, i) => (
-            <div key={i} className="flex items-center">
-              <TooltipProvider delayDuration={150}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex flex-col items-center gap-0.5">
-                      {step.completed ? (
-                        <CircleCheck className="w-4 h-4 text-success" />
-                      ) : step.active ? (
-                        <Circle className="w-4 h-4 text-primary fill-primary/20" />
-                      ) : (
-                        <Circle className="w-4 h-4 text-muted-foreground/30" />
+          {steps.map((step, i) => {
+            const timing = getTimingStatus(step);
+            const isCompleted = step.completed;
+            const isActive = step.active;
+            const isLast = i === steps.length - 1;
+
+            return (
+              <div key={i} className="flex items-center">
+                {/* Connecting line before (except first) */}
+                {i > 0 && (
+                  <div className={`h-[2px] flex-shrink-0 ${isCompleted || isActive ? "bg-success" : "bg-muted-foreground/20"}`} style={{ width: 20 }} />
+                )}
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex flex-col items-center gap-0.5 cursor-default">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors
+                          ${isCompleted
+                            ? "border-success bg-success text-white"
+                            : isActive
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-muted-foreground/25 bg-background text-muted-foreground/30"
+                          }`}>
+                          {isCompleted ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-primary" : "bg-muted-foreground/25"}`} />
+                          )}
+                        </div>
+                        <span className={`text-[9px] font-semibold leading-none ${isCompleted ? "text-foreground" : isActive ? "text-primary" : "text-muted-foreground/40"}`}>
+                          {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
+                        </span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="text-xs max-w-[200px]">
+                      <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
+                      {step.date && (
+                        <div className={`font-medium ${timingColor(timing)}`}>
+                          {step.date} • {timingLabel(timing)}
+                        </div>
                       )}
-                      <span className={`text-[9px] font-medium ${step.completed ? "text-foreground" : "text-muted-foreground/50"}`}>
-                        {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <div className="font-semibold">{MILESTONE_FULL[i] || step.label}</div>
-                    {step.date && <div className="text-muted-foreground">{step.date}</div>}
-                    {step.location && <div className="text-muted-foreground">{step.location}</div>}
-                    {step.description && <div>{step.description}</div>}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              {/* Connecting line between milestones */}
-              {i < steps.length - 1 && (
-                <div className={`w-4 h-0.5 mx-0.5 mt-[-10px] ${step.completed ? "bg-success" : "bg-muted-foreground/20"}`} />
-              )}
-            </div>
-          ))}
+                      {step.location && <div className="text-muted-foreground">{step.location}</div>}
+                      {step.description && <div className="text-muted-foreground mt-0.5">{step.description}</div>}
+                      {!step.date && !isCompleted && !isActive && (
+                        <div className="text-muted-foreground italic">Not yet reached</div>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            );
+          })}
         </div>
       );
     },
