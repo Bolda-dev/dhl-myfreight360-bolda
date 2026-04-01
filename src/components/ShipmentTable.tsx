@@ -129,7 +129,7 @@ const createColumns = (): ColumnDef[] => [
   {
     id: "hblMbl", label: "HBL / MBL", align: "left", minWidth: 100, defaultWidth: 130,
     render: (s, _h, q = "") => (
-      <div className="leading-tight">
+      <div className="space-y-1">
         <div className="text-xs font-medium text-foreground">H: <HighlightText text={s.houseBill} query={q} /></div>
         <div className="text-[11px] text-muted-foreground"><HighlightText text={s.masterBill} query={q} /></div>
       </div>
