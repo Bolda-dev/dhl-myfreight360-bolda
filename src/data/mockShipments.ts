@@ -152,7 +152,7 @@ function gen(
     lastEvent, pickupRequest: pr, pickup: pu, customs: cu, pod,
     tags, remarks: [], invoices: [],
     containers: containerCount > 0
-      ? Array.from({ length: containerCount }, (_, i) => ({ id: `CNTR${id}${i}`, type: i % 2 === 0 ? "40HC" : "20GP" }))
+      ? Array.from({ length: containerCount }, (_, i) => genContainer(`CNTR${id}${i}`, i % 2 === 0 ? "40HC" : "20GP", origin, destination))
       : [],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
