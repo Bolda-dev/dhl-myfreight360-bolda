@@ -52,9 +52,9 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-[800px] w-[95vw] p-0 gap-0 overflow-hidden h-[85vh]">
+      <DialogContent className="max-w-[800px] w-[95vw] p-0 gap-0 overflow-hidden h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b bg-card">
+        <div className="px-6 py-4 border-b bg-card shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary text-primary-foreground">
@@ -85,8 +85,8 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="general" className="flex flex-col flex-1 min-h-0">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6 h-auto py-0 gap-0">
+        <Tabs defaultValue="general" className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6 h-auto py-0 gap-0 shrink-0">
             {[
               { value: "general", label: "General", icon: null },
               { value: "events", label: "Events", icon: null, count: s.events.length },
