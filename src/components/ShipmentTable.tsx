@@ -299,6 +299,7 @@ const createColumns = (): ColumnDef[] => [
             const isActive = step.active;
             const isLastStep = i === steps.length - 1;
             const xPos = i * (circleSize + gap);
+            const hasException = !!step.exception;
 
             const activeIsLast = isActive && isLastStep;
 
@@ -307,21 +308,26 @@ const createColumns = (): ColumnDef[] => [
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="absolute flex flex-col items-center cursor-default" style={{ left: xPos, top: 0, width: circleSize }}>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors z-10
-                        ${activeIsLast || isActive
-                          ? "border-primary bg-background text-primary"
-                          : isCompleted
-                            ? "border-success bg-success text-white"
-                            : "border-muted-foreground/25 bg-background text-muted-foreground/30"
-                        }`}>
-                        {activeIsLast ? (
-                          <Clock className="w-3 h-3" />
-                        ) : isActive ? (
-                          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        ) : isCompleted ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/25" />
+                      <div className="relative">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors z-10
+                          ${activeIsLast || isActive
+                            ? "border-primary bg-background text-primary"
+                            : isCompleted
+                              ? "border-success bg-success text-white"
+                              : "border-muted-foreground/25 bg-background text-muted-foreground/30"
+                          }`}>
+                          {activeIsLast ? (
+                            <Clock className="w-3 h-3" />
+                          ) : isActive ? (
+                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                          ) : isCompleted ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/25" />
+                          )}
+                        </div>
+                        {hasException && (
+                          <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full z-20 border border-background ${step.exception!.severity === "critical" ? "bg-destructive" : "bg-warning"}`} />
                         )}
                       </div>
                       <span className={`text-[9px] font-semibold leading-none mt-0.5 ${isActive ? "text-primary" : isCompleted ? "text-foreground" : "text-muted-foreground/40"}`}>
@@ -329,7 +335,7 @@ const createColumns = (): ColumnDef[] => [
                       </span>
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs max-w-[200px]">
+                  <TooltipContent side="top" className="text-xs max-w-[220px]">
                     <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
                     {isActive && !isCompleted && (
                       <div className="font-medium text-primary">
@@ -343,6 +349,17 @@ const createColumns = (): ColumnDef[] => [
                     )}
                     {step.location && <div className="text-muted-foreground">{step.location}</div>}
                     {step.description && <div className="text-muted-foreground mt-0.5">{step.description}</div>}
+                    {hasException && (
+                      <div className={`mt-1.5 pt-1.5 border-t border-border`}>
+                        <div className={`font-semibold flex items-center gap-1 ${step.exception!.severity === "critical" ? "text-destructive" : "text-warning"}`}>
+                          <AlertTriangle className="w-3 h-3" />
+                          {step.exception!.title}
+                        </div>
+                        <div className="text-muted-foreground mt-0.5">{step.exception!.description}</div>
+                        <div className="text-muted-foreground/70 mt-0.5 text-[10px]">{step.exception!.date}</div>
+                        <div className="text-primary mt-1 text-[10px] font-medium cursor-pointer hover:underline">Click to view details →</div>
+                      </div>
+                    )}
                     {!step.date && !isCompleted && !isActive && (
                       <div className="text-muted-foreground italic">Not yet reached</div>
                     )}
