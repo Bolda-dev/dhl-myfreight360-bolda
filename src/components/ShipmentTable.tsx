@@ -309,25 +309,25 @@ const createColumns = (): ColumnDef[] => [
                   <TooltipTrigger asChild>
                     <div className="absolute flex flex-col items-center cursor-default" style={{ left: xPos, top: 0, width: circleSize }}>
                       <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors z-[1]
-                        ${isCompleted
-                          ? "border-success bg-success text-white"
-                          : activeIsLast
-                            ? "border-warning bg-warning/10 text-warning"
-                            : isActive
-                              ? "border-primary bg-primary/10 text-primary"
+                        ${activeIsLast
+                          ? "border-warning bg-warning/10 text-warning"
+                          : isActive
+                            ? "border-primary bg-primary/10 text-primary"
+                            : isCompleted
+                              ? "border-success bg-success text-white"
                               : "border-muted-foreground/25 bg-background text-muted-foreground/30"
                         }`}>
-                        {isCompleted ? (
-                          <Check className="w-3 h-3" />
-                        ) : activeIsLast ? (
+                        {activeIsLast ? (
                           <Clock className="w-3 h-3" />
                         ) : isActive ? (
                           <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        ) : isCompleted ? (
+                          <Check className="w-3 h-3" />
                         ) : (
                           <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/25" />
                         )}
                       </div>
-                      <span className={`text-[9px] font-semibold leading-none mt-0.5 ${isCompleted ? "text-foreground" : activeIsLast ? "text-warning" : isActive ? "text-primary" : "text-muted-foreground/40"}`}>
+                      <span className={`text-[9px] font-semibold leading-none mt-0.5 ${activeIsLast ? "text-warning" : isActive ? "text-primary" : isCompleted ? "text-foreground" : "text-muted-foreground/40"}`}>
                         {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
                       </span>
                     </div>
