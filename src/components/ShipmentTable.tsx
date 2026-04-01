@@ -138,7 +138,7 @@ const createColumns = (): ColumnDef[] => [
   // Origin → Dest (2 lines: codes + country)
   {
     id: "originDest", label: "ORIGIN / DEST", align: "left", minWidth: 120, defaultWidth: 150,
-    render: (s) => {
+    render: (s, _h, q = "") => {
       const oCode = CITY_CODES[s.origin] || s.origin.slice(0, 3);
       const dCode = CITY_CODES[s.destination] || s.destination.slice(0, 3);
       const oCountry = COUNTRY_CODES[s.origin] || "";
@@ -146,13 +146,13 @@ const createColumns = (): ColumnDef[] => [
       return (
         <div className="flex items-center gap-2 text-xs">
           <div className="text-center">
-            <div className="font-semibold text-foreground">{oCode}</div>
-            <div className="text-[10px] text-muted-foreground">{oCountry}</div>
+            <div className="font-semibold text-foreground"><HighlightText text={oCode} query={q} /></div>
+            <div className="text-[10px] text-muted-foreground"><HighlightText text={oCountry} query={q} /></div>
           </div>
           <span className="text-muted-foreground">→</span>
           <div className="text-center">
-            <div className="font-semibold text-foreground">{dCode}</div>
-            <div className="text-[10px] text-muted-foreground">{dCountry}</div>
+            <div className="font-semibold text-foreground"><HighlightText text={dCode} query={q} /></div>
+            <div className="text-[10px] text-muted-foreground"><HighlightText text={dCountry} query={q} /></div>
           </div>
         </div>
       );
