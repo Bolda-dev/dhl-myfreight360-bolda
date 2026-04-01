@@ -104,7 +104,7 @@ interface ColumnDef {
   minWidth: number;
   defaultWidth: number;
   isAction?: boolean;
-  render: (s: Shipment, helpers: TableHelpers) => React.ReactNode;
+  render: (s: Shipment, helpers: TableHelpers, searchQuery?: string) => React.ReactNode;
 }
 
 interface TableHelpers {
