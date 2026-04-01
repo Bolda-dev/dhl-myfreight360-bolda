@@ -266,18 +266,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
             {/* Containers Tab */}
             <TabsContent value="containers" className="p-6 m-0">
-              {s.containers.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">No containers</div>
-              ) : (
-                <div className="space-y-2">
-                  {s.containers.map((c, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-card">
-                      <span className="text-sm font-semibold text-foreground">{c.id}</span>
-                      <span className="text-[11px] font-bold px-2.5 py-1 rounded bg-primary text-primary-foreground">{c.type}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <ContainersTab containers={s.containers} />
             </TabsContent>
 
             {/* Tags Tab */}
