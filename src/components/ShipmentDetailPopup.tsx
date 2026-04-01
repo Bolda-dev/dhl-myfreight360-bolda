@@ -54,7 +54,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-[800px] w-[95vw] p-0 gap-0 overflow-hidden h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b bg-card">
+        <div className="px-6 py-4 border-b bg-card shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-primary text-primary-foreground">
