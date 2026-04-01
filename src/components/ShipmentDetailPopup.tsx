@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Shipment } from "@/data/mockShipments";
 import { CITY_CODES, COUNTRY_CODES } from "@/data/mockShipments";
 import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, X } from "lucide-react";
+import ContainersTab from "./ContainersTab";
 
 interface Props {
   shipment: Shipment | null;
