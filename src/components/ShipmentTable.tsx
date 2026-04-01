@@ -10,11 +10,26 @@ import RemarksDialog from "@/components/RemarksDialog";
 import ColumnManagerDialog from "@/components/ColumnManagerDialog";
 
 // --- helpers ---
-const TruncatedCell = ({ text, maxW = 100 }: { text: string; maxW?: number }) => (
+const HighlightText = ({ text, query, className = "" }: { text: string; query: string; className?: string }) => {
+  if (!query || query.length < 1) return <span className={className}>{text}</span>;
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <span className={className}>
+      {parts.map((part, i) =>
+        regex.test(part) ? <mark key={i} className="bg-yellow-200 text-inherit rounded-sm px-0.5">{part}</mark> : part
+      )}
+    </span>
+  );
+};
+
+const TruncatedCell = ({ text, maxW = 100, query = "" }: { text: string; maxW?: number; query?: string }) => (
   <TooltipProvider delayDuration={200}>
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="block truncate" style={{ maxWidth: maxW }}>{text}</span>
+        <span className="block truncate" style={{ maxWidth: maxW }}>
+          <HighlightText text={text} query={query} />
+        </span>
       </TooltipTrigger>
       <TooltipContent side="top" className="max-w-xs text-xs">{text}</TooltipContent>
     </Tooltip>
@@ -89,7 +104,7 @@ interface ColumnDef {
   minWidth: number;
   defaultWidth: number;
   isAction?: boolean;
-  render: (s: Shipment, helpers: TableHelpers) => React.ReactNode;
+  render: (s: Shipment, helpers: TableHelpers, searchQuery?: string) => React.ReactNode;
 }
 
 interface TableHelpers {
@@ -113,17 +128,17 @@ const createColumns = (): ColumnDef[] => [
   // HBL / MBL (2 lines)
   {
     id: "hblMbl", label: "HBL / MBL", align: "left", minWidth: 100, defaultWidth: 130,
-    render: (s) => (
+    render: (s, _h, q = "") => (
       <div className="leading-tight">
-        <div className="text-xs font-medium text-foreground">H: {s.houseBill}</div>
-        <div className="text-[11px] text-muted-foreground">{s.masterBill}</div>
+        <div className="text-xs font-medium text-foreground">H: <HighlightText text={s.houseBill} query={q} /></div>
+        <div className="text-[11px] text-muted-foreground"><HighlightText text={s.masterBill} query={q} /></div>
       </div>
     ),
   },
   // Origin → Dest (2 lines: codes + country)
   {
     id: "originDest", label: "ORIGIN / DEST", align: "left", minWidth: 120, defaultWidth: 150,
-    render: (s) => {
+    render: (s, _h, q = "") => {
       const oCode = CITY_CODES[s.origin] || s.origin.slice(0, 3);
       const dCode = CITY_CODES[s.destination] || s.destination.slice(0, 3);
       const oCountry = COUNTRY_CODES[s.origin] || "";
@@ -131,13 +146,13 @@ const createColumns = (): ColumnDef[] => [
       return (
         <div className="flex items-center gap-2 text-xs">
           <div className="text-center">
-            <div className="font-semibold text-foreground">{oCode}</div>
-            <div className="text-[10px] text-muted-foreground">{oCountry}</div>
+            <div className="font-semibold text-foreground"><HighlightText text={oCode} query={q} /></div>
+            <div className="text-[10px] text-muted-foreground"><HighlightText text={oCountry} query={q} /></div>
           </div>
           <span className="text-muted-foreground">→</span>
           <div className="text-center">
-            <div className="font-semibold text-foreground">{dCode}</div>
-            <div className="text-[10px] text-muted-foreground">{dCountry}</div>
+            <div className="font-semibold text-foreground"><HighlightText text={dCode} query={q} /></div>
+            <div className="text-[10px] text-muted-foreground"><HighlightText text={dCountry} query={q} /></div>
           </div>
         </div>
       );
@@ -184,17 +199,17 @@ const createColumns = (): ColumnDef[] => [
   // Shipper / Consignee (2 lines)
   {
     id: "shipperConsignee", label: "SHIPPER / CONSIGNEE", align: "left", minWidth: 130, defaultWidth: 180,
-    render: (s) => (
+    render: (s, _h, q = "") => (
       <div className="leading-tight">
-        <div className="text-xs font-medium text-foreground"><TruncatedCell text={s.shipper} maxW={165} /></div>
-        <div className="text-[11px] text-muted-foreground"><TruncatedCell text={s.consignee} maxW={165} /></div>
+        <div className="text-xs font-medium text-foreground"><TruncatedCell text={s.shipper} maxW={165} query={q} /></div>
+        <div className="text-[11px] text-muted-foreground"><TruncatedCell text={s.consignee} maxW={165} query={q} /></div>
       </div>
     ),
   },
   // Client Ref
   {
     id: "clientRef", label: "CLIENT\nREF", align: "left", minWidth: 80, defaultWidth: 100,
-    render: (s) => <TruncatedCell text={s.clientRef} maxW={90} />,
+    render: (s, _h, q = "") => <TruncatedCell text={s.clientRef} maxW={90} query={q} />,
   },
   // Last Event (badge + date, tooltip with full details)
   {
@@ -235,11 +250,9 @@ const createColumns = (): ColumnDef[] => [
     id: "milestones", label: "MILESTONES", align: "left", minWidth: 200, defaultWidth: 240,
     render: (s) => {
       const steps = s.statusSteps.slice(1); // skip "Order Accepted"
-      // Determine timing status for tooltip coloring
       const getTimingStatus = (step: typeof steps[0]): "ontime" | "delayed" | "late" | null => {
         if (!step.completed && !step.active) return null;
         if (!step.date) return step.completed ? "ontime" : null;
-        // Simple heuristic: check description for delay keywords
         const desc = (step.description || "").toLowerCase();
         if (desc.includes("delay") || desc.includes("late")) return "late";
         return "ontime";
@@ -257,58 +270,78 @@ const createColumns = (): ColumnDef[] => [
         return "Pending";
       };
 
+      // Find last completed index for the progress line
+      let lastCompletedIdx = -1;
+      steps.forEach((step, i) => { if (step.completed) lastCompletedIdx = i; });
+
+      const circleSize = 20; // w-5 h-5 = 20px
+      const gap = 24; // spacing between circle centers minus circle size
+      const totalWidth = steps.length * circleSize + (steps.length - 1) * gap;
+
       return (
-        <div className="flex items-center">
+        <div className="relative" style={{ width: totalWidth, height: 36 }}>
+          {/* Background line (full width, centered vertically on circles) */}
+          <div
+            className="absolute bg-muted-foreground/20 rounded-full"
+            style={{ left: circleSize / 2, right: circleSize / 2, top: (circleSize / 2) - 1, height: 2 }}
+          />
+          {/* Completed progress line */}
+          {lastCompletedIdx >= 0 && (
+            <div
+              className="absolute bg-success rounded-full"
+              style={{
+                left: circleSize / 2,
+                width: lastCompletedIdx * (circleSize + gap),
+                top: (circleSize / 2) - 1,
+                height: 2,
+              }}
+            />
+          )}
+          {/* Circles + labels */}
           {steps.map((step, i) => {
             const timing = getTimingStatus(step);
             const isCompleted = step.completed;
             const isActive = step.active;
-            const isLast = i === steps.length - 1;
+            const xPos = i * (circleSize + gap);
 
             return (
-              <div key={i} className="flex items-center">
-                {/* Connecting line before (except first) */}
-                {i > 0 && (
-                  <div className={`h-[2px] flex-shrink-0 ${isCompleted || isActive ? "bg-success" : "bg-muted-foreground/20"}`} style={{ width: 20 }} />
-                )}
-                <TooltipProvider delayDuration={150}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex flex-col items-center gap-0.5 cursor-default">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors
-                          ${isCompleted
-                            ? "border-success bg-success text-white"
-                            : isActive
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-muted-foreground/25 bg-background text-muted-foreground/30"
-                          }`}>
-                          {isCompleted ? (
-                            <Check className="w-3 h-3" />
-                          ) : (
-                            <div className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-primary" : "bg-muted-foreground/25"}`} />
-                          )}
-                        </div>
-                        <span className={`text-[9px] font-semibold leading-none ${isCompleted ? "text-foreground" : isActive ? "text-primary" : "text-muted-foreground/40"}`}>
-                          {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
-                        </span>
+              <TooltipProvider key={i} delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="absolute flex flex-col items-center cursor-default" style={{ left: xPos, top: 0, width: circleSize }}>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 transition-colors z-[1]
+                        ${isCompleted
+                          ? "border-success bg-success text-white"
+                          : isActive
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-muted-foreground/25 bg-background text-muted-foreground/30"
+                        }`}>
+                        {isCompleted ? (
+                          <Check className="w-3 h-3" />
+                        ) : (
+                          <div className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-primary" : "bg-muted-foreground/25"}`} />
+                        )}
                       </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs max-w-[200px]">
-                      <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
-                      {step.date && (
-                        <div className={`font-medium ${timingColor(timing)}`}>
-                          {step.date} • {timingLabel(timing)}
-                        </div>
-                      )}
-                      {step.location && <div className="text-muted-foreground">{step.location}</div>}
-                      {step.description && <div className="text-muted-foreground mt-0.5">{step.description}</div>}
-                      {!step.date && !isCompleted && !isActive && (
-                        <div className="text-muted-foreground italic">Not yet reached</div>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+                      <span className={`text-[9px] font-semibold leading-none mt-0.5 ${isCompleted ? "text-foreground" : isActive ? "text-primary" : "text-muted-foreground/40"}`}>
+                        {MILESTONE_LABELS[i] || step.label.slice(0, 3).toUpperCase()}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs max-w-[200px]">
+                    <div className="font-semibold mb-0.5">{MILESTONE_FULL[i] || step.label}</div>
+                    {step.date && (
+                      <div className={`font-medium ${timingColor(timing)}`}>
+                        {step.date} • {timingLabel(timing)}
+                      </div>
+                    )}
+                    {step.location && <div className="text-muted-foreground">{step.location}</div>}
+                    {step.description && <div className="text-muted-foreground mt-0.5">{step.description}</div>}
+                    {!step.date && !isCompleted && !isActive && (
+                      <div className="text-muted-foreground italic">Not yet reached</div>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             );
           })}
         </div>
@@ -370,7 +403,7 @@ const DATA_COLUMNS = ALL_COLUMNS.filter((c) => !c.isAction);
 const ACTION_COLUMNS = ALL_COLUMNS.filter((c) => c.isAction);
 
 const ShipmentTable = () => {
-  const STATUS_FILTERS = ["All", "In Transit", "Delivered", "Pickup Scheduled"] as const;
+  const STATUS_FILTERS = ["All", "In Transit", "Delivered", "Delayed"] as const;
 
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
@@ -491,15 +524,20 @@ const ShipmentTable = () => {
   };
 
   const filteredShipments = shipments.filter((s) => {
-    const matchesStatus = activeStatus === "All" || s.lastEvent === activeStatus;
+    const matchesStatus = activeStatus === "All"
+      || s.lastEvent === activeStatus
+      || (activeStatus === "Delayed" && s.events.some(e => (e.description || "").toLowerCase().includes("delay")));
+    const q = searchQuery.toLowerCase();
     const matchesSearch = !searchQuery ||
-      s.fileNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.houseBill.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.clientRef.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.shipper.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.consignee.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.origin.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.destination.toLowerCase().includes(searchQuery.toLowerCase());
+      s.houseBill.toLowerCase().includes(q) ||
+      s.masterBill.toLowerCase().includes(q) ||
+      s.clientRef.toLowerCase().includes(q) ||
+      s.shipper.toLowerCase().includes(q) ||
+      s.consignee.toLowerCase().includes(q) ||
+      s.origin.toLowerCase().includes(q) ||
+      s.destination.toLowerCase().includes(q) ||
+      (CITY_CODES[s.origin] || "").toLowerCase().includes(q) ||
+      (CITY_CODES[s.destination] || "").toLowerCase().includes(q);
     return matchesStatus && matchesSearch;
   });
 
@@ -626,7 +664,7 @@ const ShipmentTable = () => {
                       className={`${draggedCol === col.id ? "opacity-40" : ""}`}
                       style={{ width: columnWidths[col.id], minWidth: col.minWidth, padding: "8px 8px" }}
                     >
-                      {col.render(s, helpers)}
+                      {col.render(s, helpers, searchQuery)}
                     </td>
                   ))}
                 </tr>
