@@ -524,15 +524,20 @@ const ShipmentTable = () => {
   };
 
   const filteredShipments = shipments.filter((s) => {
-    const matchesStatus = activeStatus === "All" || s.lastEvent === activeStatus;
+    const matchesStatus = activeStatus === "All"
+      || s.lastEvent === activeStatus
+      || (activeStatus === "Delayed" && s.events.some(e => (e.description || "").toLowerCase().includes("delay")));
+    const q = searchQuery.toLowerCase();
     const matchesSearch = !searchQuery ||
-      s.fileNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.houseBill.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.clientRef.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.shipper.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.consignee.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.origin.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.destination.toLowerCase().includes(searchQuery.toLowerCase());
+      s.houseBill.toLowerCase().includes(q) ||
+      s.masterBill.toLowerCase().includes(q) ||
+      s.clientRef.toLowerCase().includes(q) ||
+      s.shipper.toLowerCase().includes(q) ||
+      s.consignee.toLowerCase().includes(q) ||
+      s.origin.toLowerCase().includes(q) ||
+      s.destination.toLowerCase().includes(q) ||
+      (CITY_CODES[s.origin] || "").toLowerCase().includes(q) ||
+      (CITY_CODES[s.destination] || "").toLowerCase().includes(q);
     return matchesStatus && matchesSearch;
   });
 
