@@ -179,7 +179,7 @@ const createColumns = (): ColumnDef[] => [
   },
   // Arrival ETA / ATA (2 lines) with color logic
   {
-    id: "arrival", label: "ARRIVAL\n(ETA/ATA)", align: "left", minWidth: 110, defaultWidth: 140,
+    id: "arrival", label: "ARRIVAL", align: "left", minWidth: 110, defaultWidth: 140,
     render: (s) => {
       const late = isDateLate(s.eta, s.ata);
       const ataColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
