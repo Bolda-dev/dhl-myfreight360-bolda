@@ -669,6 +669,7 @@ const ShipmentTable = () => {
           <div className="flex items-center gap-1.5 bg-accent rounded px-2 py-1">
             <Search className="w-3.5 h-3.5 text-muted-foreground" />
             <input
+              ref={searchInputRef}
               autoFocus
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
