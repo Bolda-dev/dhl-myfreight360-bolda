@@ -299,7 +299,7 @@ const originalShipments: Shipment[] = [
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
       { label: "Pickup", completed: true, active: false, date: "Sep 18, 03:00 PM", location: "Beijing", description: "Cargo loaded" },
-      { label: "Departed", completed: false, active: true, date: "Sep 19, 07:15 AM", location: "Beijing Rail Terminal", description: "Train departed — currently in transit" },
+      { label: "Departed", completed: false, active: true, date: "Sep 19, 07:15 AM", location: "Beijing Rail Terminal", description: "Train departed — currently in transit", exception: { title: "Container Split", description: "One container was held at Alashankou border crossing due to customs inspection. Shipment has been split into two separate transports.", date: "Sep 22, 03:00 PM", severity: "critical" } },
       { label: "Arrived", completed: false, active: false },
       { label: "Delivered", completed: false, active: false },
     ],
