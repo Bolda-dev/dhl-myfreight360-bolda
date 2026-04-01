@@ -85,8 +85,8 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="general" className="flex flex-col flex-1 min-h-0">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6 h-auto py-0 gap-0">
+        <Tabs defaultValue="general" className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6 h-auto py-0 gap-0 shrink-0">
             {[
               { value: "general", label: "General", icon: null },
               { value: "events", label: "Events", icon: null, count: s.events.length },
