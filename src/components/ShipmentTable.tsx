@@ -436,6 +436,34 @@ const ALL_COLUMNS = createColumns();
 const DATA_COLUMNS = ALL_COLUMNS.filter((c) => !c.isAction);
 const ACTION_COLUMNS = ALL_COLUMNS.filter((c) => c.isAction);
 
+// Separate origin & destination columns for split mode
+const ORIGIN_COL: ColumnDef = {
+  id: "origin", label: "ORIGIN", align: "left", minWidth: 70, defaultWidth: 90,
+  render: (s, _h, q = "") => {
+    const oCode = CITY_CODES[s.origin] || s.origin.slice(0, 3);
+    const oCountry = COUNTRY_CODES[s.origin] || "";
+    return (
+      <div className="text-xs text-center">
+        <div className="font-semibold text-foreground"><HighlightText text={oCode} query={q} /></div>
+        <div className="text-[10px] text-muted-foreground"><HighlightText text={oCountry} query={q} /></div>
+      </div>
+    );
+  },
+};
+const DEST_COL: ColumnDef = {
+  id: "destination", label: "DEST", align: "left", minWidth: 70, defaultWidth: 90,
+  render: (s, _h, q = "") => {
+    const dCode = CITY_CODES[s.destination] || s.destination.slice(0, 3);
+    const dCountry = COUNTRY_CODES[s.destination] || "";
+    return (
+      <div className="text-xs text-center">
+        <div className="font-semibold text-foreground"><HighlightText text={dCode} query={q} /></div>
+        <div className="text-[10px] text-muted-foreground"><HighlightText text={dCountry} query={q} /></div>
+      </div>
+    );
+  },
+};
+
 const ShipmentTable = () => {
   const STATUS_FILTERS = ["All", "In Transit", "Delivered", "Delayed"] as const;
 
@@ -453,19 +481,36 @@ const ShipmentTable = () => {
   const [actionVisibility, setActionVisibility] = useState<ActionVisibility>({
     exceptions: true, containers: true, invoices: true, tags: true, remarks: true,
   });
-  const [mergeOriginDest, setMergeOriginDest] = useState(false);
+  const [mergeOriginDest, setMergeOriginDest] = useState(true);
 
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
     const w: Record<string, number> = {};
     ALL_COLUMNS.forEach((c) => (w[c.id] = c.defaultWidth));
+    w["origin"] = ORIGIN_COL.defaultWidth;
+    w["destination"] = DEST_COL.defaultWidth;
     return w;
   });
 
-  // Only data columns are reorderable/hideable; action columns always pinned right
-  const visibleDataColumns = visibleColumnIds.map((id) => DATA_COLUMNS.find((c) => c.id === id)!).filter(Boolean);
+  // Expand originDest into origin + destination when not merged
+  const expandedDataColumns = (() => {
+    const allDataCols = [...DATA_COLUMNS, ORIGIN_COL, DEST_COL];
+    const result: ColumnDef[] = [];
+    for (const id of visibleColumnIds) {
+      if (id === "originDest" && !mergeOriginDest) {
+        result.push(ORIGIN_COL, DEST_COL);
+      } else if (id === "origin" || id === "destination") {
+        // skip standalone if they snuck in
+      } else {
+        const col = allDataCols.find((c) => c.id === id);
+        if (col) result.push(col);
+      }
+    }
+    return result;
+  })();
+
   const filteredActionColumns = ACTION_COLUMNS.filter((c) => actionVisibility[c.id as keyof ActionVisibility]);
-  const visibleColumns = [...visibleDataColumns, ...filteredActionColumns];
+  const visibleColumns = [...expandedDataColumns, ...filteredActionColumns];
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 

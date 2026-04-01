@@ -8,7 +8,6 @@ const Index = () => {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <div className="shrink-0 px-6 pt-4 pb-2">
           <h1 className="text-lg font-semibold text-foreground">Logistics Module</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Shipment tracking and management</p>
         </div>
         <main className="flex-1 min-h-0 px-6 pb-0">
           <ShipmentTable />
