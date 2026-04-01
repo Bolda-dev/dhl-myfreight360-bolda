@@ -56,9 +56,27 @@ export interface Invoice {
   description: string;
 }
 
+export interface ContainerJourneyStep {
+  status: string;
+  location: string;
+  date: string;
+  completed: boolean;
+}
+
 export interface Container {
   id: string;
   type: string;
+  quantity: number;
+  descriptionOfGoods: string;
+  weightKg: number;
+  volumeCbm: number;
+  warehouse: string;
+  storageStatus: "Okay" | "Alert" | "Full";
+  portDepotStatus: string;
+  customsStatus: string;
+  logisticStatus: string;
+  inlandStatus: string;
+  journey: ContainerJourneyStep[];
 }
 
 export interface MilestoneException {
@@ -117,6 +135,27 @@ export const COUNTRY_CODES: Record<string, string> = {
   "FELIXSTOWE": "UK", "SANTOS": "BR", "HAIFA": "IL",
 };
 
+function genContainer(id: string, type: string, origin: string, destination: string): Container {
+  const goods = ["S.T.C.:17 PALLETS X 60 BAGS ON EACH PALLET", "ELECTRONIC COMPONENTS", "MACHINERY PARTS", "TEXTILE GOODS"][Math.floor(Math.random() * 4)];
+  return {
+    id, type, quantity: 1,
+    descriptionOfGoods: goods,
+    weightKg: 25000 + Math.floor(Math.random() * 2000),
+    volumeCbm: 40 + Math.floor(Math.random() * 20),
+    warehouse: "",
+    storageStatus: "Okay",
+    portDepotStatus: "Loaded on",
+    customsStatus: "Correction Auto Approved",
+    logisticStatus: "אישור סחינה ליבוא",
+    inlandStatus: "הזמנת סחינה יבוא",
+    journey: [
+      { status: "Loaded at origin", location: origin, date: "Sep 18, 10:00 AM", completed: true },
+      { status: "In transit", location: "At sea", date: "Sep 20, 08:00 AM", completed: true },
+      { status: "Arrived at port", location: destination, date: "Oct 2, 06:00 AM", completed: false },
+    ],
+  };
+}
+
 // Helper to generate a basic shipment quickly
 function gen(
   id: string, fileNumber: string, houseBill: string, clientRef: string, opened: string,
@@ -134,7 +173,7 @@ function gen(
     lastEvent, pickupRequest: pr, pickup: pu, customs: cu, pod,
     tags, remarks: [], invoices: [],
     containers: containerCount > 0
-      ? Array.from({ length: containerCount }, (_, i) => ({ id: `CNTR${id}${i}`, type: i % 2 === 0 ? "40HC" : "20GP" }))
+      ? Array.from({ length: containerCount }, (_, i) => genContainer(`CNTR${id}${i}`, i % 2 === 0 ? "40HC" : "20GP", origin, destination))
       : [],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
@@ -254,7 +293,7 @@ const originalShipments: Shipment[] = [
       { number: "INV-2025-008", date: "9/19/2025 11:00 AM", amount: 350.00, currency: "USD", status: "ISSUED", description: "Documentation" },
       { number: "INV-2025-009", date: "9/19/2025 11:30 AM", amount: 220.00, currency: "EUR", status: "ISSUED", description: "Insurance" },
     ],
-    containers: [{ id: "MSCU1234567", type: "40HC" }, { id: "MSCU7654321", type: "40HC" }],
+    containers: [genContainer("MSCU1234567", "40HC", "HAMBURG", "SINGAPORE"), genContainer("MSCU7654321", "40HC", "HAMBURG", "SINGAPORE")],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false, date: "Sep 19, 11:15 AM", location: "Hamburg", description: "Booking confirmed" },
       { label: "Pickup", completed: false, active: true, date: "Sep 23, 02:30 PM", location: "Hamburg Port", description: "Pickup scheduled", exception: { title: "Cargo Drop Incident", description: "Abnormal drop detected during loading — package inspection required before departure.", date: "Sep 23, 01:15 PM", severity: "warning" } },
@@ -295,7 +334,7 @@ const originalShipments: Shipment[] = [
       { number: "INV-2025-013", date: "9/16/2025 11:00 AM", amount: 175.00, currency: "USD", status: "ISSUED", description: "Documentation" },
       { number: "INV-2025-014", date: "9/16/2025 12:00 PM", amount: 280.00, currency: "EUR", status: "OVERDUE", description: "Insurance premium" },
     ],
-    containers: [{ id: "TCKU9876543", type: "40GP" }, { id: "TCKU1239876", type: "40GP" }, { id: "TCKU5556789", type: "20GP" }],
+    containers: [genContainer("TCKU9876543", "40GP", "BEIJING", "HAMBURG"), genContainer("TCKU1239876", "40GP", "BEIJING", "HAMBURG"), genContainer("TCKU5556789", "20GP", "BEIJING", "HAMBURG")],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
       { label: "Pickup", completed: true, active: false, date: "Sep 18, 03:00 PM", location: "Beijing", description: "Cargo loaded" },

@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Shipment } from "@/data/mockShipments";
 import { CITY_CODES, COUNTRY_CODES } from "@/data/mockShipments";
 import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, X } from "lucide-react";
+import ContainersTab from "./ContainersTab";
 
 interface Props {
   shipment: Shipment | null;
@@ -51,7 +52,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-[800px] w-[95vw] p-0 gap-0 overflow-hidden max-h-[85vh]">
+      <DialogContent className="max-w-[800px] w-[95vw] p-0 gap-0 overflow-hidden h-[85vh]">
         {/* Header */}
         <div className="px-6 py-4 border-b bg-card">
           <div className="flex items-center justify-between">
@@ -108,7 +109,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
             ))}
           </TabsList>
 
-          <div className="overflow-y-auto flex-1 max-h-[calc(85vh-180px)]">
+          <div className="overflow-y-auto flex-1">
             {/* General Tab */}
             <TabsContent value="general" className="p-6 m-0 space-y-6">
               {/* Exceptions banner */}
@@ -265,18 +266,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
             {/* Containers Tab */}
             <TabsContent value="containers" className="p-6 m-0">
-              {s.containers.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">No containers</div>
-              ) : (
-                <div className="space-y-2">
-                  {s.containers.map((c, i) => (
-                    <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-card">
-                      <span className="text-sm font-semibold text-foreground">{c.id}</span>
-                      <span className="text-[11px] font-bold px-2.5 py-1 rounded bg-primary text-primary-foreground">{c.type}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <ContainersTab containers={s.containers} />
             </TabsContent>
 
             {/* Tags Tab */}
