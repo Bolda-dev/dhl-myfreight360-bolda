@@ -160,7 +160,7 @@ const createColumns = (): ColumnDef[] => [
   },
   // Departure ETD / ATD (2 lines) with color logic
   {
-    id: "departure", label: "DEPARTURE\n(ETD/ATD)", align: "left", minWidth: 110, defaultWidth: 140,
+    id: "departure", label: "DEPARTURE", align: "left", minWidth: 110, defaultWidth: 140,
     render: (s) => {
       const late = isDateLate(s.etd, s.atd);
       const atdColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
