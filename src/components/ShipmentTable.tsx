@@ -357,7 +357,7 @@ const createColumns = (): ColumnDef[] => [
                         </div>
                         <div className="text-muted-foreground mt-0.5">{step.exception!.description}</div>
                         <div className="text-muted-foreground/70 mt-0.5 text-[10px]">{step.exception!.date}</div>
-                        <div className="text-primary mt-1 text-[10px] font-medium cursor-pointer hover:underline">Click to view details →</div>
+                        
                       </div>
                     )}
                     {!step.date && !isCompleted && !isActive && (
