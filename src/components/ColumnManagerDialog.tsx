@@ -231,13 +231,14 @@ const ColumnManagerDialog = ({
             <div>
               <span className="font-medium">Merge Origin & Destination</span>
               <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border bg-accent text-[10px]">
+                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-[10px] ${merged ? "bg-primary/10 border-primary/30" : "bg-accent"}`}>
                   <span className="font-semibold">TLV</span> → <span className="font-semibold">LAX</span>
                 </span>
                 <span className="text-[10px]">vs</span>
-                <span className="inline-flex flex-col gap-0 px-1.5 py-0.5 rounded border bg-accent text-[10px] leading-tight">
-                  <span><span className="font-semibold">Origin:</span> TLV</span>
-                  <span><span className="font-semibold">Dest:</span> LAX</span>
+                <span className={`inline-flex gap-2 px-1.5 py-0.5 rounded border text-[10px] ${!merged ? "bg-primary/10 border-primary/30" : "bg-accent"}`}>
+                  <span><span className="font-semibold">TLV</span></span>
+                  <span className="text-muted-foreground">|</span>
+                  <span><span className="font-semibold">LAX</span></span>
                 </span>
               </div>
             </div>
