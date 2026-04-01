@@ -355,15 +355,15 @@ const createColumns = (): ColumnDef[] => [
       );
     },
   },
-  // --- Actions (far right, no header label) ---
+  // --- Actions (far right, compact with bigger hover targets) ---
   {
-    id: "exceptions", label: "Exc.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
+    id: "exceptions", label: "Exc.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
     render: (s, h) => (
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <button onClick={() => h.openEvents(s)} className={`inline-flex items-center gap-0.5 text-xs font-semibold rounded px-1 py-0.5 transition-colors ${s.exceptions > 0 ? "text-warning hover:text-warning/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
-              <AlertTriangle className="w-3 h-3" />{s.exceptions > 0 ? s.exceptions : ""}
+            <button onClick={() => h.openEvents(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold rounded-md w-7 h-7 transition-colors ${s.exceptions > 0 ? "text-warning hover:text-warning/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <AlertTriangle className="w-3.5 h-3.5" />{s.exceptions > 0 ? <span className="text-[10px]">{s.exceptions}</span> : null}
             </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">Exceptions</TooltipContent>
@@ -372,13 +372,13 @@ const createColumns = (): ColumnDef[] => [
     ),
   },
   {
-    id: "containers", label: "Cnt.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
+    id: "containers", label: "Cnt.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
     render: (s) => (
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${s.containerCount > 0 ? "text-primary" : "text-muted-foreground/30"}`}>
-              <Container className="w-3 h-3" />{s.containerCount > 0 ? s.containerCount : ""}
+            <span className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold rounded-md w-7 h-7 transition-colors cursor-default ${s.containerCount > 0 ? "text-primary hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <Container className="w-3.5 h-3.5" />{s.containerCount > 0 ? <span className="text-[10px]">{s.containerCount}</span> : null}
             </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">Containers</TooltipContent>
@@ -387,60 +387,51 @@ const createColumns = (): ColumnDef[] => [
     ),
   },
   {
-    id: "invoices", label: "Inv.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => {
-      const hasInvoices = s.invoiceCount > 0;
-      return (
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button onClick={() => h.openInvoices(s)} className={`inline-flex items-center gap-0.5 text-xs font-medium rounded px-1 py-0.5 transition-colors ${hasInvoices ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
-                <FileText className="w-3 h-3" />{hasInvoices ? s.invoiceCount : ""}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">Invoices</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    },
+    id: "invoices", label: "Inv.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
+    render: (s, h) => (
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => h.openInvoices(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs font-medium rounded-md w-7 h-7 transition-colors ${s.invoiceCount > 0 ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <FileText className="w-3.5 h-3.5" />{s.invoiceCount > 0 ? <span className="text-[10px]">{s.invoiceCount}</span> : null}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Invoices</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
   },
   {
-    id: "tags", label: "Tags", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => {
-      const hasTags = s.tags.length > 0;
-      return (
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button onClick={() => h.openTags(s)} className={`inline-flex items-center gap-0.5 text-xs rounded px-1 py-0.5 transition-colors ${hasTags ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
-                <Tag className="w-3 h-3" />
-                {hasTags && <span className="font-medium">{s.tags.length}</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">Tags</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    },
+    id: "tags", label: "Tags", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
+    render: (s, h) => (
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => h.openTags(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs rounded-md w-7 h-7 transition-colors ${s.tags.length > 0 ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <Tag className="w-3.5 h-3.5" />
+              {s.tags.length > 0 && <span className="font-medium text-[10px]">{s.tags.length}</span>}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Tags</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
   },
   {
-    id: "remarks", label: "Rem.", align: "left", minWidth: 40, defaultWidth: 42, isAction: true,
-    render: (s, h) => {
-      const hasRemarks = s.remarks.length > 0;
-      return (
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button onClick={() => h.openRemarks(s)} className={`inline-flex items-center gap-0.5 text-xs rounded px-1 py-0.5 transition-colors ${hasRemarks ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30"}`}>
-                <MessageSquare className="w-3 h-3" />
-                {hasRemarks && <span className="font-medium">{s.remarks.length}</span>}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">Remarks</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      );
-    },
+    id: "remarks", label: "Rem.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
+    render: (s, h) => (
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button onClick={() => h.openRemarks(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs rounded-md w-7 h-7 transition-colors ${s.remarks.length > 0 ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+              <MessageSquare className="w-3.5 h-3.5" />
+              {s.remarks.length > 0 && <span className="font-medium text-[10px]">{s.remarks.length}</span>}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">Remarks</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    ),
   },
 ];
 
