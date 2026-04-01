@@ -293,7 +293,7 @@ const originalShipments: Shipment[] = [
       { number: "INV-2025-008", date: "9/19/2025 11:00 AM", amount: 350.00, currency: "USD", status: "ISSUED", description: "Documentation" },
       { number: "INV-2025-009", date: "9/19/2025 11:30 AM", amount: 220.00, currency: "EUR", status: "ISSUED", description: "Insurance" },
     ],
-    containers: [{ id: "MSCU1234567", type: "40HC" }, { id: "MSCU7654321", type: "40HC" }],
+    containers: [genContainer("MSCU1234567", "40HC", "HAMBURG", "SINGAPORE"), genContainer("MSCU7654321", "40HC", "HAMBURG", "SINGAPORE")],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false, date: "Sep 19, 11:15 AM", location: "Hamburg", description: "Booking confirmed" },
       { label: "Pickup", completed: false, active: true, date: "Sep 23, 02:30 PM", location: "Hamburg Port", description: "Pickup scheduled", exception: { title: "Cargo Drop Incident", description: "Abnormal drop detected during loading — package inspection required before departure.", date: "Sep 23, 01:15 PM", severity: "warning" } },
