@@ -129,7 +129,7 @@ const createColumns = (): ColumnDef[] => [
   {
     id: "hblMbl", label: "HBL / MBL", align: "left", minWidth: 100, defaultWidth: 130,
     render: (s, _h, q = "") => (
-      <div className="leading-tight">
+      <div className="space-y-1">
         <div className="text-xs font-medium text-foreground">H: <HighlightText text={s.houseBill} query={q} /></div>
         <div className="text-[11px] text-muted-foreground"><HighlightText text={s.masterBill} query={q} /></div>
       </div>
@@ -165,7 +165,7 @@ const createColumns = (): ColumnDef[] => [
       const late = isDateLate(s.etd, s.atd);
       const atdColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
       return (
-        <div className="leading-tight text-xs">
+        <div className="text-xs space-y-1">
           <div className="text-muted-foreground whitespace-nowrap">
             <span className="text-[10px] text-muted-foreground/70">ETD:</span> {formatDate(s.etd) || "—"}
           </div>
@@ -184,7 +184,7 @@ const createColumns = (): ColumnDef[] => [
       const late = isDateLate(s.eta, s.ata);
       const ataColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
       return (
-        <div className="leading-tight text-xs">
+        <div className="text-xs space-y-1">
           <div className="text-muted-foreground whitespace-nowrap">
             <span className="text-[10px] text-muted-foreground/70">ETA:</span> {formatDate(s.eta) || "—"}
           </div>
@@ -200,7 +200,7 @@ const createColumns = (): ColumnDef[] => [
   {
     id: "shipperConsignee", label: "SHIPPER / CONSIGNEE", align: "left", minWidth: 130, defaultWidth: 180,
     render: (s, _h, q = "") => (
-      <div className="leading-tight">
+      <div className="space-y-1">
         <div className="text-xs font-medium text-foreground"><TruncatedCell text={s.shipper} maxW={165} query={q} /></div>
         <div className="text-[11px] text-muted-foreground"><TruncatedCell text={s.consignee} maxW={165} query={q} /></div>
       </div>
