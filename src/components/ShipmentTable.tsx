@@ -165,7 +165,7 @@ const createColumns = (): ColumnDef[] => [
       const late = isDateLate(s.etd, s.atd);
       const atdColor = late === null ? "text-muted-foreground" : late ? "text-destructive font-semibold" : "text-success font-semibold";
       return (
-        <div className="leading-tight text-xs">
+        <div className="text-xs space-y-1">
           <div className="text-muted-foreground whitespace-nowrap">
             <span className="text-[10px] text-muted-foreground/70">ETD:</span> {formatDate(s.etd) || "—"}
           </div>
