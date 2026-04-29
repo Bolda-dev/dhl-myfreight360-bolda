@@ -487,6 +487,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
 
             {/* Events Tab */}
             <TabsContent value="events" className="p-6 m-0">
+              <TabHeader title="Events Timeline" subtitle={`${s.events.length} event${s.events.length === 1 ? "" : "s"} recorded`} />
               <div className="space-y-3">
                 {s.events.map((event, i) => (
                   <div key={i} className="flex gap-3">
@@ -497,7 +498,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
                     </div>
                     <div className="flex-1 border rounded-lg p-3 bg-card">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-foreground">{event.title}</span>
+                        <span className="text-[13px] font-semibold text-foreground">{event.title}</span>
                         <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded">{event.type}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
@@ -513,6 +514,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
 
             {/* Invoices Tab */}
             <TabsContent value="invoices" className="p-6 m-0">
+              <TabHeader title="Invoices" subtitle={`${s.invoices.length} invoice${s.invoices.length === 1 ? "" : "s"}`} />
               {s.invoices.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">No invoices</div>
               ) : (
@@ -520,11 +522,11 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
                   {s.invoices.map((inv, i) => (
                     <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-card">
                       <div>
-                        <div className="text-sm font-semibold text-foreground">{inv.number}</div>
+                        <div className="text-[13px] font-semibold text-foreground">{inv.number}</div>
                         <div className="text-xs text-muted-foreground">{inv.description}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-bold text-foreground">{inv.currency} {inv.amount.toLocaleString()}</div>
+                        <div className="text-[13px] font-bold text-foreground">{inv.currency} {inv.amount.toLocaleString()}</div>
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${inv.status === "PAID" ? "bg-success/10 text-success" : inv.status === "OVERDUE" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"}`}>{inv.status}</span>
                       </div>
                     </div>
@@ -535,37 +537,104 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
 
             {/* Containers Tab */}
             <TabsContent value="containers" className="p-6 m-0">
+              <TabHeader
+                title={isAir ? "Packages" : "Containers"}
+                subtitle={`${s.containerCount} ${isAir ? "package" : "container"}${s.containerCount === 1 ? "" : "s"}`}
+              />
               <ContainersTab containers={s.containers} isAir={isAir} />
             </TabsContent>
 
             {/* Tags Tab */}
             <TabsContent value="tags" className="p-6 m-0">
-              {s.tags.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">No tags</div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {s.tags.map((tag, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">{tag}</span>
-                  ))}
+              <TabHeader title="Tags" subtitle={`${s.tags.length} tag${s.tags.length === 1 ? "" : "s"} applied`} />
+              <div className="space-y-5">
+                <div>
+                  <SectionTitle>Applied</SectionTitle>
+                  {s.tags.length === 0 ? (
+                    <div className="text-xs text-muted-foreground">No tags yet</div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {s.tags.map((tag) => (
+                        <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
+                          {tag}
+                          {onTagsChange && (
+                            <button
+                              onClick={() => onTagsChange(s.tags.filter((t) => t !== tag))}
+                              className="hover:text-destructive"
+                              aria-label={`Remove ${tag}`}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+                {onTagsChange && (
+                  <div>
+                    <SectionTitle>Available</SectionTitle>
+                    <div className="flex flex-wrap gap-1.5">
+                      {AVAILABLE_TAGS.filter((t) => !s.tags.includes(t)).map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => onTagsChange([...s.tags, tag])}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full border text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                        >
+                          <Plus className="w-3 h-3" />
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             {/* Remarks Tab */}
             <TabsContent value="remarks" className="p-6 m-0">
-              {s.remarks.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">No remarks</div>
-              ) : (
-                <div className="space-y-3">
-                  {s.remarks.map((rem, i) => (
-                    <div key={i} className="border rounded-lg p-3 bg-card">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-foreground">{rem.author}</span>
-                        <span className="text-[10px] text-muted-foreground">{rem.date}</span>
+              <TabHeader title="Remarks" subtitle={`${s.remarks.length} note${s.remarks.length === 1 ? "" : "s"}`} />
+              <div className="space-y-3 mb-4">
+                {s.remarks.length === 0 && <div className="text-xs text-muted-foreground">No remarks yet</div>}
+                {s.remarks.map((rem) => (
+                  <div key={rem.id ?? rem.date + rem.text} className="border rounded-lg p-3 bg-card">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-3 h-3 text-primary" />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{rem.text}</p>
+                      <span className="text-[13px] font-semibold text-foreground">{rem.author}</span>
+                      <span className="text-[10px] text-muted-foreground ml-auto">{rem.date}</span>
                     </div>
-                  ))}
+                    <p className="text-xs text-foreground pl-7">{rem.text}</p>
+                  </div>
+                ))}
+              </div>
+              {onRemarkAdd && (
+                <div className="flex gap-2 border-t pt-3">
+                  <input
+                    type="text"
+                    value={remarkText}
+                    onChange={(e) => setRemarkText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && remarkText.trim()) {
+                        onRemarkAdd(remarkText.trim());
+                        setRemarkText("");
+                      }
+                    }}
+                    placeholder="Add a remark..."
+                    className="flex-1 px-3 py-1.5 text-sm border rounded bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    onClick={() => {
+                      if (!remarkText.trim()) return;
+                      onRemarkAdd(remarkText.trim());
+                      setRemarkText("");
+                    }}
+                    disabled={!remarkText.trim()}
+                    className="px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
                 </div>
               )}
             </TabsContent>
