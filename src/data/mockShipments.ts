@@ -80,6 +80,7 @@ export interface Container {
   inlandStatus: string;
   journey: ContainerJourneyStep[];
   events?: ContainerEvents;
+  dimensions?: string;
 }
 
 export type ContainerEventStatus = "completed" | "current" | "pending";
