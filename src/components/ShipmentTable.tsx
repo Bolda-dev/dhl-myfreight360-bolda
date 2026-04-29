@@ -101,6 +101,35 @@ const getLastEventDate = (s: Shipment): string => {
   return completed.length > 0 ? completed[completed.length - 1].date : "";
 };
 
+// Carrier codes — IATA (2-letter) for Air, SCAC-style (3-letter) for Ocean
+const AIR_CARRIERS: { code: string; name: string }[] = [
+  { code: "LY", name: "El Al" },
+  { code: "LH", name: "Lufthansa Cargo" },
+  { code: "EK", name: "Emirates SkyCargo" },
+  { code: "QR", name: "Qatar Airways Cargo" },
+  { code: "CX", name: "Cathay Cargo" },
+  { code: "AF", name: "Air France Cargo" },
+  { code: "BA", name: "British Airways" },
+  { code: "DL", name: "Delta Cargo" },
+];
+const OCEAN_CARRIERS: { code: string; name: string }[] = [
+  { code: "MSC", name: "Mediterranean Shipping Co." },
+  { code: "MSK", name: "Maersk" },
+  { code: "CMA", name: "CMA CGM" },
+  { code: "HLC", name: "Hapag-Lloyd" },
+  { code: "ONE", name: "Ocean Network Express" },
+  { code: "ZIM", name: "ZIM" },
+  { code: "EMC", name: "Evergreen" },
+  { code: "COS", name: "COSCO" },
+];
+const getCarrier = (s: Shipment): { code: string; name: string } | null => {
+  if (s.transportMode === "Rail") return null;
+  const pool = s.transportMode === "Air" ? AIR_CARRIERS : OCEAN_CARRIERS;
+  let h = 0;
+  for (let i = 0; i < s.id.length; i++) h = (h * 31 + s.id.charCodeAt(i)) >>> 0;
+  return pool[h % pool.length];
+};
+
 // --- column definition ---
 interface ColumnDef {
   id: string;
@@ -139,6 +168,20 @@ const createColumns = (): ColumnDef[] => [
         <div className="text-[11px] text-muted-foreground"><HighlightText text={s.masterBill} query={q} /></div>
       </div>
     ),
+  },
+  // Carrier
+  {
+    id: "carrier", label: "Carrier", align: "left", minWidth: 80, defaultWidth: 100,
+    render: (s, _h, q = "") => {
+      const c = getCarrier(s);
+      if (!c) return <span className="text-muted-foreground">—</span>;
+      return (
+        <div className="space-y-0.5" title={c.name}>
+          <div className="text-xs font-semibold text-foreground tracking-wider"><HighlightText text={c.code} query={q} /></div>
+          <div className="text-[10px] text-muted-foreground truncate">{c.name}</div>
+        </div>
+      );
+    },
   },
   // Origin → Dest (2 lines: codes + country)
   {
@@ -728,7 +771,9 @@ const ShipmentTable = () => {
       s.origin.toLowerCase().includes(q) ||
       s.destination.toLowerCase().includes(q) ||
       (CITY_CODES[s.origin] || "").toLowerCase().includes(q) ||
-      (CITY_CODES[s.destination] || "").toLowerCase().includes(q);
+      (CITY_CODES[s.destination] || "").toLowerCase().includes(q) ||
+      (getCarrier(s)?.code.toLowerCase().includes(q) ?? false) ||
+      (getCarrier(s)?.name.toLowerCase().includes(q) ?? false);
     if (!matchesStatus || !matchesSearch) return false;
     // Per-column filters
     for (const [colId, valueSet] of Object.entries(columnFilters)) {
