@@ -114,7 +114,7 @@ const ChartTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{
 //  Widget 1 — Documents by Consignee (donut + ranked legend)
 // =============================================================
 
-const DocumentsByConsignee = () => {
+const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minimal" }) => {
   const { data, total, top } = useMemo(() => {
     const counts: Record<string, number> = {};
     mockShipments.forEach((s) => {
@@ -132,6 +132,74 @@ const DocumentsByConsignee = () => {
 
   const topPct = top ? ((top.value / total) * 100).toFixed(1) : "0";
 
+  // Inline donut shared between variants
+  const Donut = ({ size }: { size: number }) => (
+    <div
+      className="relative mx-auto"
+      style={{ width: size, height: size }}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <defs>
+            {PIE_PALETTE.map((c, i) => (
+              <linearGradient key={i} id={`donut-${i}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={c} stopOpacity={0.95} />
+                <stop offset="100%" stopColor={c} stopOpacity={0.7} />
+              </linearGradient>
+            ))}
+          </defs>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            innerRadius="68%"
+            outerRadius="96%"
+            paddingAngle={1.5}
+            stroke="hsl(var(--card))"
+            strokeWidth={2}
+            isAnimationActive={false}
+          >
+            {data.map((_, i) => (
+              <Cell key={i} fill={`url(#donut-${i % PIE_PALETTE.length})`} />
+            ))}
+          </Pie>
+          <ReTooltip
+            content={<ChartTooltip />}
+            wrapperStyle={{ zIndex: 60, outline: "none" }}
+            allowEscapeViewBox={{ x: true, y: true }}
+            cursor={false}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
+          Total
+        </div>
+        <div className="text-3xl font-bold text-foreground tabular-nums leading-tight">
+          {total.toLocaleString()}
+        </div>
+        <div className="text-[10px] text-muted-foreground mt-0.5">
+          {data.length} consignees
+        </div>
+      </div>
+    </div>
+  );
+
+  if (variant === "minimal") {
+    return (
+      <WidgetCard
+        title="Documents by Consignee"
+        subtitle={`Top: ${top?.name ?? "—"}`}
+      >
+        <div className="h-full flex items-center justify-center py-2">
+          <Donut size={220} />
+        </div>
+      </WidgetCard>
+    );
+  }
+
   return (
     <WidgetCard
       title="Documents by Consignee"
@@ -140,50 +208,8 @@ const DocumentsByConsignee = () => {
     >
       <div className="flex flex-col lg:flex-row items-stretch gap-4 h-full">
         {/* Donut */}
-        <div className="relative shrink-0 w-full lg:w-[210px] h-[210px] mx-auto">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <defs>
-                {PIE_PALETTE.map((c, i) => (
-                  <linearGradient key={i} id={`donut-${i}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={c} stopOpacity={0.95} />
-                    <stop offset="100%" stopColor={c} stopOpacity={0.7} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius="68%"
-                outerRadius="96%"
-                paddingAngle={1.5}
-                stroke="hsl(var(--card))"
-                strokeWidth={2}
-              >
-                {data.map((_, i) => (
-                  <Cell
-                    key={i}
-                    fill={`url(#donut-${i % PIE_PALETTE.length})`}
-                  />
-                ))}
-              </Pie>
-              <ReTooltip content={<ChartTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
-              Total
-            </div>
-            <div className="text-3xl font-bold text-foreground tabular-nums leading-tight">
-              {total.toLocaleString()}
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">
-              {data.length} consignees
-            </div>
-          </div>
+        <div className="shrink-0 w-full lg:w-[210px] flex items-center justify-center">
+          <Donut size={210} />
         </div>
 
         {/* Ranked legend */}
