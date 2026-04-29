@@ -70,6 +70,15 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
     let prevCode = oCode;
     let prevCountry = oCountry;
 
+    // Build UN/LOCODE-like 5-char code for a port name (e.g. "Haifa" + IL -> "ILHFA")
+    const portCode = (cityName: string, countryName: string): string => {
+      const country = (COUNTRY_CODES[cityName] || countryName || "XX").slice(0, 2).toUpperCase();
+      const cityRaw = (CITY_CODES[cityName] || cityName).replace(/[^A-Za-z]/g, "").toUpperCase();
+      const consonants = cityRaw.replace(/[AEIOU]/g, "");
+      const port = (consonants.length >= 3 ? consonants : cityRaw).slice(0, 3).padEnd(3, "X");
+      return `${country}${port}`;
+    };
+
     const baseEtd = s.etd ? new Date(s.etd) : new Date();
     const baseEta = s.eta ? new Date(s.eta) : new Date(baseEtd.getTime() + 1000 * 60 * 60 * 24 * 14);
     const totalMs = baseEta.getTime() - baseEtd.getTime();
@@ -80,6 +89,8 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
       const nextLocation = isLast ? s.destination : transshipmentHubs[(hash + i) % transshipmentHubs.length];
       const nextCode = isLast ? dCode : nextLocation.slice(0, 3).toUpperCase();
       const nextCountry = isLast ? dCountry : "";
+      const loadLocode = portCode(prevLocation, prevCountry);
+      const dischargeLocode = portCode(nextLocation, nextCountry);
       const carrier = carriers[(hash + i) % carriers.length];
       const vessel = vesselNames[(hash + i + (isOcean ? 1 : 0)) % vesselNames.length];
       const ref = isOcean
@@ -91,6 +102,9 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
       const now = Date.now();
       const status: "completed" | "in_transit" | "scheduled" =
         legEta.getTime() < now ? "completed" : legEtd.getTime() < now ? "in_transit" : "scheduled";
+      // Actuals known once departure has happened
+      const departureActual = legEtd.getTime() < now;
+      const arrivalActual = legEta.getTime() < now;
 
       legs.push({
         index: i + 1,
@@ -100,11 +114,15 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
         to: nextLocation,
         toCode: nextCode,
         toCountry: nextCountry,
+        loadLocode,
+        dischargeLocode,
         carrier,
         vessel,
         ref,
         etd: legEtd.toISOString(),
         eta: legEta.toISOString(),
+        departureActual,
+        arrivalActual,
         status,
         isLast,
       });
