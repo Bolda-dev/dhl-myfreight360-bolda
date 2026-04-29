@@ -176,8 +176,13 @@ const createColumns = (): ColumnDef[] => [
       const c = getCarrier(s);
       if (!c) return <span className="text-muted-foreground">—</span>;
       return (
-        <div className="space-y-0.5" title={c.name}>
-          <div className="text-xs font-semibold text-foreground tracking-wider"><HighlightText text={c.code} query={q} /></div>
+        <div className="space-y-0.5">
+          <span
+            className="inline-block text-xs font-semibold text-foreground tracking-wider cursor-help"
+            title={c.name}
+          >
+            <HighlightText text={c.code} query={q} />
+          </span>
           <div className="text-[10px] text-muted-foreground truncate">{c.name}</div>
         </div>
       );
