@@ -6,13 +6,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface Props {
   containers: Container[];
+  isAir?: boolean;
 }
 
-const ContainersTab = ({ containers }: Props) => {
+const ContainersTab = ({ containers, isAir = false }: Props) => {
   const [view, setView] = useState<"table" | "journey">("table");
 
   if (containers.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground text-sm">No containers</div>;
+    return <div className="text-center py-8 text-muted-foreground text-sm">No {isAir ? "packages" : "containers"}</div>;
   }
 
   const totalWeight = containers.reduce((s, c) => s + c.weightKg, 0);
@@ -24,8 +25,9 @@ const ContainersTab = ({ containers }: Props) => {
       {/* View toggle */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          {containers.length} Container{containers.length > 1 ? "s" : ""}
+          {containers.length} {isAir ? "Package" : "Container"}{containers.length > 1 ? "s" : ""}
         </span>
+        {!isAir && (
         <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
           <button
             onClick={() => setView("table")}
@@ -42,9 +44,49 @@ const ContainersTab = ({ containers }: Props) => {
             Journey
           </button>
         </div>
+        )}
       </div>
 
-      {view === "table" ? (
+      {isAir ? (
+        <div className="border rounded-lg overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-muted/50 border-b">
+                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">No.</th>
+                  <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Pieces</th>
+                  <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Weight (kg)</th>
+                  <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Chargeable (kg)</th>
+                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Goods</th>
+                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Dimensions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {containers.map((c, i) => (
+                  <tr key={i} className={`border-b last:border-b-0 ${i % 2 === 0 ? "bg-background" : "bg-muted/20"}`}>
+                    <td className="px-3 py-2.5 text-muted-foreground">{i + 1}</td>
+                    <td className="px-3 py-2.5 text-right font-medium">{c.pieces.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-right font-medium">{c.weightKg.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-right font-medium">{c.chargeableKg.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 max-w-[260px]"><div className="truncate" title={c.descriptionOfGoods}>{c.descriptionOfGoods}</div></td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-muted-foreground">{c.dimensions ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-muted/40 border-t font-semibold">
+                  <td className="px-3 py-2 text-muted-foreground" colSpan={1}>{containers.length} pkg{containers.length > 1 ? "s" : ""}</td>
+                  <td className="px-3 py-2 text-right">{totalPieces.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right">{totalWeight.toLocaleString()}</td>
+                  <td className="px-3 py-2 text-right">{totalChargeable.toLocaleString()}</td>
+                  <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      ) : view === "table" ? (
         <div className="border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
