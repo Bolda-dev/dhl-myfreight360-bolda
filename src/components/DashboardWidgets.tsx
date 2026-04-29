@@ -152,14 +152,6 @@ const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minima
     >
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <defs>
-            {PIE_PALETTE.map((c, i) => (
-              <linearGradient key={i} id={`donut-${i}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={c} stopOpacity={0.95} />
-                <stop offset="100%" stopColor={c} stopOpacity={0.7} />
-              </linearGradient>
-            ))}
-          </defs>
           <Pie
             data={data}
             dataKey="value"
@@ -174,7 +166,7 @@ const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minima
             isAnimationActive={false}
           >
             {data.map((_, i) => (
-              <Cell key={i} fill={`url(#donut-${i % PIE_PALETTE.length})`} />
+              <Cell key={i} fill={PIE_PALETTE[i % PIE_PALETTE.length]} />
             ))}
           </Pie>
           <ReTooltip
