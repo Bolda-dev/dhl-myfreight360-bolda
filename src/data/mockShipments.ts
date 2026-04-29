@@ -224,6 +224,36 @@ function genContainer(id: string, type: string, origin: string, destination: str
   };
 }
 
+function genPackage(id: string, origin: string, destination: string): Container {
+  const goods = ["ELECTRONIC COMPONENTS", "PHARMACEUTICAL SAMPLES", "GARMENTS — 12 CTNS", "MACHINE SPARE PARTS", "DOCUMENTS & PROTOTYPES"][Math.floor(Math.random() * 5)];
+  const pieces = 5 + Math.floor(Math.random() * 40);
+  const weightKg = 80 + Math.floor(Math.random() * 600);
+  const volumeCbm = +(0.4 + Math.random() * 3).toFixed(2);
+  const chargeableKg = Math.max(weightKg, Math.round(volumeCbm * 167));
+  return {
+    id,
+    type: "PKG",
+    quantity: pieces,
+    descriptionOfGoods: goods,
+    pieces,
+    weightKg,
+    volumeCbm,
+    chargeableKg,
+    warehouse: "",
+    storageStatus: "Okay",
+    portDepotStatus: "",
+    customsStatus: "",
+    logisticStatus: "",
+    inlandStatus: "",
+    journey: [
+      { status: "Picked up", location: origin, date: "Sep 18, 10:00 AM", completed: true },
+      { status: "Departed", location: origin, date: "Sep 19, 03:30 PM", completed: true },
+      { status: "Arrived", location: destination, date: "Sep 20, 06:00 AM", completed: false },
+    ],
+    dimensions: `${40 + Math.floor(Math.random() * 80)}×${30 + Math.floor(Math.random() * 60)}×${20 + Math.floor(Math.random() * 50)} cm`,
+  };
+}
+
 // Helper to generate a basic shipment quickly
 function gen(
   id: string, fileNumber: string, houseBill: string, clientRef: string, opened: string,
