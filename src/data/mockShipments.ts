@@ -68,8 +68,10 @@ export interface Container {
   type: string;
   quantity: number;
   descriptionOfGoods: string;
+  pieces: number;
   weightKg: number;
   volumeCbm: number;
+  chargeableKg: number;
   warehouse: string;
   storageStatus: "Okay" | "Alert" | "Full";
   portDepotStatus: string;
@@ -77,6 +79,17 @@ export interface Container {
   logisticStatus: string;
   inlandStatus: string;
   journey: ContainerJourneyStep[];
+  events?: ContainerEvents;
+}
+
+export type ContainerEventStatus = "completed" | "current" | "pending";
+
+export interface ContainerEvents {
+  gateIn: { status: ContainerEventStatus; date?: string };
+  loaded: { status: ContainerEventStatus; date?: string };
+  unloaded: { status: ContainerEventStatus; date?: string };
+  gateOut: { status: ContainerEventStatus; date?: string };
+  emptyReturn: { status: ContainerEventStatus; date?: string };
 }
 
 export interface MilestoneException {
