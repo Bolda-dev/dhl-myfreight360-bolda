@@ -1,14 +1,18 @@
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Shipment } from "@/data/mockShipments";
-import { CITY_CODES, COUNTRY_CODES } from "@/data/mockShipments";
-import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, Package, X, ArrowRight, Anchor } from "lucide-react";
+import { CITY_CODES, COUNTRY_CODES, AVAILABLE_TAGS } from "@/data/mockShipments";
+import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, Package, X, ArrowRight, Anchor, Plus, Send, User } from "lucide-react";
 import ContainersTab from "./ContainersTab";
 
 interface Props {
   shipment: Shipment | null;
   open: boolean;
   onClose: () => void;
+  initialTab?: string;
+  onTagsChange?: (tags: string[]) => void;
+  onRemarkAdd?: (text: string) => void;
 }
 
 const modeIcon: Record<string, React.ReactNode> = {
@@ -29,7 +33,53 @@ const isDateLate = (estimated: string | null | undefined, actual: string | null 
   return new Date(actual) > new Date(estimated);
 };
 
-const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
+// ===== Shared tab UI helpers =====
+const TabHeader = ({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle?: React.ReactNode;
+  action?: React.ReactNode;
+}) => (
+  <div className="flex items-start justify-between gap-4 mb-5">
+    <div className="min-w-0">
+      <h3 className="text-sm font-semibold text-foreground leading-tight">{title}</h3>
+      {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
+    </div>
+    {action && <div className="shrink-0">{action}</div>}
+  </div>
+);
+
+const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+  <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">{children}</h4>
+);
+
+const DataField = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className="bg-muted/30 rounded-lg p-3">
+    <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{label}</div>
+    <div className="text-[13px] font-medium text-foreground mt-1 truncate">{value}</div>
+  </div>
+);
+
+const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange, onRemarkAdd }: Props) => {
+  const [activeTab, setActiveTab] = useState<string>(initialTab || "general");
+  const exceptionsRef = useRef<HTMLDivElement | null>(null);
+  const [remarkText, setRemarkText] = useState("");
+
+  useEffect(() => {
+    if (open) setActiveTab(initialTab || "general");
+  }, [open, initialTab, shipment?.id]);
+
+  // Scroll to exceptions banner when opened from the exceptions icon
+  useEffect(() => {
+    if (open && initialTab === "general" && exceptionsRef.current) {
+      const t = setTimeout(() => exceptionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+      return () => clearTimeout(t);
+    }
+  }, [open, initialTab, shipment?.id]);
+
   if (!shipment) return null;
 
   const s = shipment;
