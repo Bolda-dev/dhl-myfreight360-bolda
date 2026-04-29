@@ -220,6 +220,7 @@ function genContainer(id: string, type: string, origin: string, destination: str
       gateOut: mk(3),
       emptyReturn: mk(4),
     },
+    dimensions: `${120 + Math.floor(Math.random() * 30)}×${80 + Math.floor(Math.random() * 20)}×${90 + Math.floor(Math.random() * 30)} cm`,
   };
 }
 
