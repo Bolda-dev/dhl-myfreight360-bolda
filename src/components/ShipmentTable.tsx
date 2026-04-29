@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark, type MilestoneException } from "@/data/mockShipments";
 import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container, Clock, ArrowUp, ArrowDown, ArrowUpDown, Filter } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import ShipmentDetailPopup from "@/components/ShipmentDetailPopup";
 import InvoicesDialog from "@/components/InvoicesDialog";
 import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
@@ -517,9 +519,12 @@ const ShipmentTable = () => {
   });
   const [mergeOriginDest, setMergeOriginDest] = useState(true);
 
-  // Sort & filter state per column (UI indication)
+  // Sort & filter state per column
   const [sortState, setSortState] = useState<{ colId: string; dir: "asc" | "desc" } | null>(null);
-  const [filteredCols, setFilteredCols] = useState<Record<string, boolean>>({});
+  // Map of colId -> Set of selected raw string values; if undefined or empty -> not filtered
+  const [columnFilters, setColumnFilters] = useState<Record<string, Set<string>>>({});
+  const [filterPopoverCol, setFilterPopoverCol] = useState<string | null>(null);
+  const [filterSearch, setFilterSearch] = useState("");
 
   const toggleSort = (colId: string) => {
     setSortState((prev) => {
@@ -528,9 +533,44 @@ const ShipmentTable = () => {
       return null;
     });
   };
-  const toggleFilter = (colId: string) => {
-    setFilteredCols((prev) => ({ ...prev, [colId]: !prev[colId] }));
+  const isColumnFiltered = (colId: string) => {
+    const set = columnFilters[colId];
+    return !!set && set.size > 0;
   };
+
+  // Per-column accessor: returns a comparable/sortable string for a shipment
+  const getColumnValue = (s: Shipment, colId: string): string => {
+    switch (colId) {
+      case "transportMode":
+        return s.transportMode === "Rail" ? "Road" : s.transportMode === "Ocean" ? "Sea" : s.transportMode;
+      case "hblMbl":
+        return s.houseBill;
+      case "originDest":
+        return `${CITY_CODES[s.origin] || s.origin} → ${CITY_CODES[s.destination] || s.destination}`;
+      case "origin":
+        return CITY_CODES[s.origin] || s.origin;
+      case "destination":
+        return CITY_CODES[s.destination] || s.destination;
+      case "departure":
+        return s.etd || "";
+      case "arrival":
+        return s.eta || "";
+      case "shipperConsignee":
+        return s.shipper;
+      case "clientRef":
+        return s.clientRef;
+      case "lastEvent":
+        return s.lastEvent;
+      case "milestones": {
+        const completed = s.statusSteps.filter((st) => st.completed).length;
+        return String(completed).padStart(2, "0");
+      }
+      default:
+        return "";
+    }
+  };
+
+  const isDateColumn = (colId: string) => colId === "departure" || colId === "arrival";
 
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
@@ -656,7 +696,7 @@ const ShipmentTable = () => {
     openRemarks: (s) => setRemarksShipment(s),
   };
 
-  const filteredShipments = shipments.filter((s) => {
+  const baseFiltered = shipments.filter((s) => {
     const matchesStatus = activeStatus === "All"
       || s.lastEvent === activeStatus
       || (activeStatus === "Delayed" && s.events.some(e => (e.description || "").toLowerCase().includes("delay")));
@@ -671,8 +711,46 @@ const ShipmentTable = () => {
       s.destination.toLowerCase().includes(q) ||
       (CITY_CODES[s.origin] || "").toLowerCase().includes(q) ||
       (CITY_CODES[s.destination] || "").toLowerCase().includes(q);
-    return matchesStatus && matchesSearch;
+    if (!matchesStatus || !matchesSearch) return false;
+    // Per-column filters
+    for (const [colId, valueSet] of Object.entries(columnFilters)) {
+      if (!valueSet || valueSet.size === 0) continue;
+      const v = getColumnValue(s, colId);
+      if (!valueSet.has(v)) return false;
+    }
+    return true;
   });
+
+  // Apply sort
+  const filteredShipments = (() => {
+    if (!sortState) return baseFiltered;
+    const { colId, dir } = sortState;
+    const sorted = [...baseFiltered].sort((a, b) => {
+      const va = getColumnValue(a, colId);
+      const vb = getColumnValue(b, colId);
+      if (isDateColumn(colId)) {
+        const da = va ? new Date(va).getTime() : 0;
+        const db = vb ? new Date(vb).getTime() : 0;
+        return da - db;
+      }
+      return va.localeCompare(vb, undefined, { numeric: true, sensitivity: "base" });
+    });
+    return dir === "asc" ? sorted : sorted.reverse();
+  })();
+
+  // Unique values for the filter popover of a given column (computed from non-column-filtered base)
+  const getUniqueValuesForColumn = (colId: string): string[] => {
+    const vals = new Set<string>();
+    shipments.forEach((s) => {
+      const v = getColumnValue(s, colId);
+      if (v) vals.add(v);
+    });
+    return Array.from(vals).sort((a, b) =>
+      isDateColumn(colId)
+        ? new Date(a).getTime() - new Date(b).getTime()
+        : a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+    );
+  };
 
   const isActionCol = (id: string) => ACTION_COL_IDS.includes(id);
 
@@ -801,27 +879,131 @@ const ShipmentTable = () => {
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
-                            <TooltipProvider delayDuration={200}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); toggleFilter(col.id); }}
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                    onDragStart={(e) => e.preventDefault()}
-                                    className={`h-5 w-5 rounded flex items-center justify-center transition-opacity hover:bg-accent ${
-                                      filteredCols[col.id]
-                                        ? "opacity-100 text-primary"
-                                        : "opacity-0 group-hover:opacity-60 hover:!opacity-100 text-muted-foreground"
-                                    }`}
-                                  >
-                                    <Filter className={`w-3 h-3 ${filteredCols[col.id] ? "fill-current" : ""}`} />
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-xs">
-                                  {filteredCols[col.id] ? "Filter active" : "Filter"}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Popover
+                              open={filterPopoverCol === col.id}
+                              onOpenChange={(o) => {
+                                setFilterPopoverCol(o ? col.id : null);
+                                if (!o) setFilterSearch("");
+                              }}
+                            >
+                              <PopoverTrigger asChild>
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  onMouseDown={(e) => e.stopPropagation()}
+                                  onDragStart={(e) => e.preventDefault()}
+                                  title={isColumnFiltered(col.id) ? "Filter active" : "Filter"}
+                                  className={`h-5 w-5 rounded flex items-center justify-center transition-opacity hover:bg-accent ${
+                                    isColumnFiltered(col.id) || filterPopoverCol === col.id
+                                      ? "opacity-100 text-primary"
+                                      : "opacity-0 group-hover:opacity-60 hover:!opacity-100 text-muted-foreground"
+                                  }`}
+                                >
+                                  <Filter className={`w-3 h-3 ${isColumnFiltered(col.id) ? "fill-current" : ""}`} />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                align="start"
+                                sideOffset={6}
+                                className="w-56 p-0"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {(() => {
+                                  const values = getUniqueValuesForColumn(col.id);
+                                  const selected = columnFilters[col.id] || new Set<string>();
+                                  const filtered = filterSearch
+                                    ? values.filter((v) => v.toLowerCase().includes(filterSearch.toLowerCase()))
+                                    : values;
+                                  const allSelected = filtered.length > 0 && filtered.every((v) => selected.has(v));
+                                  const toggleValue = (v: string) => {
+                                    setColumnFilters((prev) => {
+                                      const next = { ...prev };
+                                      const set = new Set(next[col.id] || []);
+                                      if (set.has(v)) set.delete(v);
+                                      else set.add(v);
+                                      if (set.size === 0) delete next[col.id];
+                                      else next[col.id] = set;
+                                      return next;
+                                    });
+                                  };
+                                  const toggleAll = () => {
+                                    setColumnFilters((prev) => {
+                                      const next = { ...prev };
+                                      const set = new Set(next[col.id] || []);
+                                      if (allSelected) filtered.forEach((v) => set.delete(v));
+                                      else filtered.forEach((v) => set.add(v));
+                                      if (set.size === 0) delete next[col.id];
+                                      else next[col.id] = set;
+                                      return next;
+                                    });
+                                  };
+                                  const clearAll = () => {
+                                    setColumnFilters((prev) => {
+                                      const next = { ...prev };
+                                      delete next[col.id];
+                                      return next;
+                                    });
+                                  };
+                                  const formatValueLabel = (v: string) =>
+                                    isDateColumn(col.id)
+                                      ? new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                      : v;
+                                  return (
+                                    <div className="flex flex-col">
+                                      <div className="p-2 border-b">
+                                        <div className="relative">
+                                          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+                                          <input
+                                            value={filterSearch}
+                                            onChange={(e) => setFilterSearch(e.target.value)}
+                                            placeholder="Search values..."
+                                            className="w-full pl-7 pr-2 py-1 text-xs border rounded bg-background outline-none focus:ring-1 focus:ring-primary"
+                                          />
+                                        </div>
+                                      </div>
+                                      <div className="max-h-56 overflow-auto p-1">
+                                        {filtered.length === 0 ? (
+                                          <div className="px-2 py-3 text-[11px] text-muted-foreground text-center">No values</div>
+                                        ) : (
+                                          <>
+                                            <label className="flex items-center gap-2 px-2 py-1 rounded hover:bg-accent cursor-pointer text-xs font-medium">
+                                              <Checkbox
+                                                checked={allSelected}
+                                                onCheckedChange={toggleAll}
+                                                className="w-3.5 h-3.5"
+                                              />
+                                              <span>Select all</span>
+                                            </label>
+                                            <div className="h-px bg-border my-1" />
+                                            {filtered.map((v) => (
+                                              <label key={v} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-accent cursor-pointer text-xs">
+                                                <Checkbox
+                                                  checked={selected.has(v)}
+                                                  onCheckedChange={() => toggleValue(v)}
+                                                  className="w-3.5 h-3.5"
+                                                />
+                                                <span className="truncate">{formatValueLabel(v)}</span>
+                                              </label>
+                                            ))}
+                                          </>
+                                        )}
+                                      </div>
+                                      <div className="flex justify-between items-center p-2 border-t">
+                                        <button
+                                          onClick={clearAll}
+                                          disabled={!isColumnFiltered(col.id)}
+                                          className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+                                        >
+                                          Clear filter
+                                        </button>
+                                        <span className="text-[10px] text-muted-foreground">
+                                          {selected.size > 0 ? `${selected.size} selected` : ""}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                       )}
