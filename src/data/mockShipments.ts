@@ -524,12 +524,22 @@ const additionalShipments: Shipment[] = [
   gen("35","s112233030","9AB1030","CLI-60030","9/17/2025 12:30 PM","Air","BEIJING","DUBAI","AIR CHINA CARGO","DUBAI ELECTRONICS FZE",0,1,0,"9/19/2025 11:00 PM","9/19/2025 11:15 PM","9/20/2025 05:00 AM","9/20/2025 04:50 AM","Delivered",true,true,true,true,["VIP Client"]),
 ];
 
+// Post-process: ensure Air shipments have packages
+const ensurePackages = (s: Shipment): Shipment => {
+  if (s.transportMode !== "Air" || s.containers.length > 0) return s;
+  const count = 1 + Math.floor(Math.random() * 3);
+  const pkgs = Array.from({ length: count }, (_, i) => genPackage(`PKG${s.id}-${i + 1}`, s.origin, s.destination));
+  return { ...s, containers: pkgs, containerCount: count };
+};
+const originalWithPkgs = originalShipments.map(ensurePackages);
+const additionalWithPkgs = additionalShipments.map(ensurePackages);
+
 // Duplicate to double the dataset
-const duplicated = [...originalShipments, ...additionalShipments].map((s, i) => ({
+const duplicated = [...originalWithPkgs, ...additionalWithPkgs].map((s, i) => ({
   ...s,
   id: `dup-${s.id}-${i}`,
   fileNumber: `${s.fileNumber}d`,
   houseBill: `${s.houseBill}D`,
 }));
 
-export const mockShipments: Shipment[] = [...originalShipments, ...additionalShipments, ...duplicated];
+export const mockShipments: Shipment[] = [...originalWithPkgs, ...additionalWithPkgs, ...duplicated];
