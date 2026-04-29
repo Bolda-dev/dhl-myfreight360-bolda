@@ -771,7 +771,60 @@ const ShipmentTable = () => {
                           </Tooltip>
                         </TooltipProvider>
                       ) : (
-                        <span className="cursor-grab active:cursor-grabbing text-xs whitespace-pre-line leading-tight">{col.label}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="cursor-grab active:cursor-grabbing text-xs whitespace-pre-line leading-tight">{col.label}</span>
+                          <div className="flex items-center gap-0.5 ml-auto">
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); toggleSort(col.id); }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onDragStart={(e) => e.preventDefault()}
+                                    className={`h-5 w-5 rounded flex items-center justify-center transition-opacity hover:bg-accent ${
+                                      sortState?.colId === col.id
+                                        ? "opacity-100 text-primary"
+                                        : "opacity-0 group-hover:opacity-60 hover:!opacity-100 text-muted-foreground"
+                                    }`}
+                                  >
+                                    {sortState?.colId === col.id ? (
+                                      sortState.dir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                                    ) : (
+                                      <ArrowUpDown className="w-3 h-3" />
+                                    )}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  {sortState?.colId === col.id
+                                    ? (sortState.dir === "asc" ? "Sorted ascending" : "Sorted descending")
+                                    : "Sort"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); toggleFilter(col.id); }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onDragStart={(e) => e.preventDefault()}
+                                    className={`h-5 w-5 rounded flex items-center justify-center transition-opacity hover:bg-accent ${
+                                      filteredCols[col.id]
+                                        ? "opacity-100 text-primary"
+                                        : "opacity-0 group-hover:opacity-60 hover:!opacity-100 text-muted-foreground"
+                                    }`}
+                                  >
+                                    <Filter className={`w-3 h-3 ${filteredCols[col.id] ? "fill-current" : ""}`} />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  {filteredCols[col.id] ? "Filter active" : "Filter"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </div>
+                      )}
                       )}
                       {!isAction && (
                         <div
