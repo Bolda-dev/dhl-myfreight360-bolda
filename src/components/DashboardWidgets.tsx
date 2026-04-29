@@ -55,7 +55,7 @@ const WidgetCard = ({
   children: React.ReactNode;
 }) => (
   <div
-    className={`group relative bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden ${className}`}
+    className={`group relative bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col ${className}`}
   >
     <div className="flex items-start justify-between px-4 pt-3.5 pb-2">
       <div className="min-w-0">
