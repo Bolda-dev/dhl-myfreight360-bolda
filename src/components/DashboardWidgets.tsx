@@ -583,19 +583,20 @@ const ModeKPI = ({
         <div className="mt-3 h-20 -mx-1">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={trend} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`kpi-spark-${mode}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={meta.color} stopOpacity={0.5} />
-                  <stop offset="100%" stopColor={meta.color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
               <Area
                 type="monotone"
                 dataKey="v"
                 stroke={meta.color}
                 strokeWidth={2}
-                fill={`url(#kpi-spark-${mode})`}
+                fill={meta.color}
+                fillOpacity={0.15}
                 isAnimationActive={false}
+              />
+              <ReTooltip
+                content={<ChartTooltip unit={`${meta.label.toLowerCase()} shipments`} />}
+                wrapperStyle={{ zIndex: 60, outline: "none" }}
+                allowEscapeViewBox={{ x: true, y: true }}
+                cursor={{ stroke: meta.color, strokeOpacity: 0.4, strokeWidth: 1 }}
               />
             </AreaChart>
           </ResponsiveContainer>
