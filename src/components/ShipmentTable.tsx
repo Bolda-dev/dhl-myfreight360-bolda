@@ -143,6 +143,7 @@ interface TableHelpers {
   openEvents: (s: Shipment) => void;
   openTags: (s: Shipment) => void;
   openRemarks: (s: Shipment) => void;
+  openContainers: (s: Shipment) => void;
 }
 
 const createColumns = (): ColumnDef[] => [
