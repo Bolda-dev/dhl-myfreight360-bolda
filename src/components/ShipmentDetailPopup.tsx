@@ -276,12 +276,13 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
             <TabsContent value="general" className="p-6 m-0 space-y-6">
               {/* Exceptions banner */}
               {exceptions.length > 0 && (
-                <div className="space-y-2">
+                <div ref={exceptionsRef} className="space-y-3">
+                  <SectionTitle>Exceptions</SectionTitle>
                   {exceptions.map((exc, i) => (
                     <div key={i} className={`flex items-start gap-3 p-3 rounded-lg border ${exc.severity === "critical" ? "bg-destructive/5 border-destructive/20" : "bg-warning/5 border-warning/20"}`}>
                       <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${exc.severity === "critical" ? "text-destructive" : "text-warning"}`} />
                       <div className="flex-1 min-w-0">
-                        <div className={`text-sm font-semibold ${exc.severity === "critical" ? "text-destructive" : "text-warning"}`}>{exc.title}</div>
+                        <div className={`text-[13px] font-semibold ${exc.severity === "critical" ? "text-destructive" : "text-warning"}`}>{exc.title}</div>
                         <div className="text-xs text-muted-foreground mt-0.5">{exc.description}</div>
                         <div className="text-[10px] text-muted-foreground/70 mt-1">{exc.milestone} • {exc.date}</div>
                       </div>
@@ -292,7 +293,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
 
               {/* Milestone progress */}
               <div>
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Milestones</h3>
+                <SectionTitle>Milestones</SectionTitle>
                 <div className="flex items-center justify-between relative px-2">
                   {/* Background line */}
                   <div className="absolute left-[calc(10%+10px)] right-[calc(10%+10px)] top-[14px] h-0.5 bg-muted-foreground/15 rounded-full" />
@@ -335,8 +336,8 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
 
               {/* Details grid */}
               <div>
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Shipment Details</h3>
-                <div className="grid grid-cols-3 gap-4">
+                <SectionTitle>Shipment Details</SectionTitle>
+                <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: "File Number", value: s.fileNumber },
                     { label: "Client Ref", value: s.clientRef },
@@ -344,20 +345,17 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
                     { label: "Shipper", value: s.shipper },
                     { label: "Consignee", value: s.consignee },
                     { label: "Containers", value: s.containerCount > 0 ? String(s.containerCount) : "—" },
-                  ].map(item => (
-                    <div key={item.label} className="bg-muted/30 rounded-lg p-3">
-                      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{item.label}</div>
-                      <div className="text-sm font-medium text-foreground mt-1 truncate">{item.value}</div>
-                    </div>
-                  ))}
+                  ].map(item => <DataField key={item.label} label={item.label} value={item.value} />)}
                 </div>
               </div>
 
               {/* Departure / Arrival */}
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <SectionTitle>Schedule</SectionTitle>
+                <div className="grid grid-cols-2 gap-3">
                 <div className="bg-muted/30 rounded-lg p-4">
                   <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Departure</div>
-                  <div className="space-y-1 text-sm">
+                  <div className="space-y-1 text-[13px]">
                     <div className="flex justify-between"><span className="text-muted-foreground">ETD</span><span className="font-medium">{formatDate(s.etd)}</span></div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">ATD</span>
@@ -367,7 +365,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
                 </div>
                 <div className="bg-muted/30 rounded-lg p-4">
                   <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Arrival</div>
-                  <div className="space-y-1 text-sm">
+                  <div className="space-y-1 text-[13px]">
                     <div className="flex justify-between"><span className="text-muted-foreground">ETA</span><span className="font-medium">{formatDate(s.eta)}</span></div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">ATA</span>
@@ -375,22 +373,21 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
                     </div>
                   </div>
                 </div>
+                </div>
               </div>
             </TabsContent>
 
             {/* Flights / Voyage Tab */}
             <TabsContent value={tripTabValue} className="p-6 m-0">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">Trip Itinerary</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {legs.length} {legNoun.toLowerCase()}{legs.length > 1 ? "s" : ""} from {oCode} to {dCode}
-                  </p>
-                </div>
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  {legs.length > 1 ? `${legs.length - 1} Transshipment${legs.length - 1 > 1 ? "s" : ""}` : "Direct"}
-                </span>
-              </div>
+              <TabHeader
+                title="Trip Itinerary"
+                subtitle={`${legs.length} ${legNoun.toLowerCase()}${legs.length > 1 ? "s" : ""} from ${oCode} to ${dCode}`}
+                action={
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    {legs.length > 1 ? `${legs.length - 1} Transshipment${legs.length - 1 > 1 ? "s" : ""}` : "Direct"}
+                  </span>
+                }
+              />
 
               <div className="relative">
                 {legs.map((leg, i) => {
