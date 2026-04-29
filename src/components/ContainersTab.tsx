@@ -180,41 +180,46 @@ const ContainerJourneyCard = ({ container: c, index }: { container: Container; i
             {c.dimensions && <div className="col-span-3"><span className="text-muted-foreground">Dimensions:</span> <span className="font-medium text-foreground">{c.dimensions}</span></div>}
           </div>
 
-          {/* Events — same as table */}
+          {/* Journey timeline — driven by the same 5 events shown in the table */}
           {c.events && (
             <div>
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Events</div>
-              <div className="grid grid-cols-5 gap-2">
-                {EVENT_DEFS.map((def) => (
-                  <div key={def.key} className="border rounded p-2 bg-background">
-                    <div className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">{def.label}</div>
-                    <EventCell e={c.events?.[def.key]} />
-                  </div>
-                ))}
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Journey</div>
+              <div className="space-y-0">
+                {EVENT_DEFS.map((def, j) => {
+                  const e = c.events?.[def.key];
+                  const status = e?.status ?? "pending";
+                  const isDone = status === "completed";
+                  const isCurrent = status === "current";
+                  const isLast = j === EVENT_DEFS.length - 1;
+                  return (
+                    <div key={def.key} className="flex items-start gap-3">
+                      <div className="flex flex-col items-center">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+                          isDone ? "border-success bg-success text-white"
+                          : isCurrent ? "border-primary bg-primary text-white"
+                          : "border-muted-foreground/30 text-muted-foreground/40"
+                        }`}>
+                          {isDone ? <Check className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
+                        </div>
+                        {!isLast && <div className={`w-0.5 h-6 ${isDone ? "bg-success" : "bg-muted-foreground/20"}`} />}
+                      </div>
+                      <div className="pb-3">
+                        <div className={`text-xs font-semibold ${isDone || isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
+                          {def.label}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {e?.countryCode && <span className="font-semibold tracking-wider">{e.countryCode}</span>}
+                          {e?.countryCode && (e?.date || e?.time) && " • "}
+                          {e?.date}{e?.time ? ` · ${e.time}` : ""}
+                          {!e?.date && !e?.time && status === "pending" && "—"}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
-
-          {/* Journey timeline */}
-          <div>
-            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Journey</div>
-            <div className="space-y-0">
-              {c.journey.map((step, j) => (
-                <div key={j} className="flex items-start gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${step.completed ? "border-success bg-success text-white" : "border-muted-foreground/30 text-muted-foreground/40"}`}>
-                      {step.completed ? <Check className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
-                    </div>
-                    {j < c.journey.length - 1 && <div className={`w-0.5 h-6 ${step.completed ? "bg-success" : "bg-muted-foreground/20"}`} />}
-                  </div>
-                  <div className="pb-3">
-                    <div className={`text-xs font-semibold ${step.completed ? "text-foreground" : "text-muted-foreground"}`}>{step.status}</div>
-                    <div className="text-[10px] text-muted-foreground">{step.location} • {step.date}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </CollapsibleContent>
     </Collapsible>
