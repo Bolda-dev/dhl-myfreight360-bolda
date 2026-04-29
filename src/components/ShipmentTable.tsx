@@ -517,6 +517,21 @@ const ShipmentTable = () => {
   });
   const [mergeOriginDest, setMergeOriginDest] = useState(true);
 
+  // Sort & filter state per column (UI indication)
+  const [sortState, setSortState] = useState<{ colId: string; dir: "asc" | "desc" } | null>(null);
+  const [filteredCols, setFilteredCols] = useState<Record<string, boolean>>({});
+
+  const toggleSort = (colId: string) => {
+    setSortState((prev) => {
+      if (!prev || prev.colId !== colId) return { colId, dir: "asc" };
+      if (prev.dir === "asc") return { colId, dir: "desc" };
+      return null;
+    });
+  };
+  const toggleFilter = (colId: string) => {
+    setFilteredCols((prev) => ({ ...prev, [colId]: !prev[colId] }));
+  };
+
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
     const w: Record<string, number> = {};
