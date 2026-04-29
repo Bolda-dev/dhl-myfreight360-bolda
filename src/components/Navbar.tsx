@@ -15,7 +15,7 @@ import {
 
 const mainNavItems = [
   { label: "Dashboards", submenu: ["Overview", "Analytics", "Reports"] },
-  { label: "Modules", submenu: ["Shipments", "Warehousing", "Customs"] },
+  { label: "Modules", submenu: ["Shipments", "Warehousing", "Customs"], active: true },
 ];
 
 const iconNavItems = [
@@ -43,11 +43,13 @@ const Navbar = () => {
           >
             <PopoverTrigger asChild>
               <button
-                className={`h-7 px-2.5 rounded flex items-center gap-1 text-xs font-medium transition-colors ${
+                className={`relative h-7 px-2.5 rounded flex items-center gap-1 text-xs font-medium transition-colors ${
                   openMenu === item.label
                     ? "bg-accent text-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                }`}
+                    : item.active
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                } ${item.active ? "after:content-[''] after:absolute after:left-2.5 after:right-2.5 after:-bottom-[9px] after:h-[2px] after:bg-primary after:rounded-full" : ""}`}
               >
                 {item.label}
                 <ChevronDown className="w-3 h-3 opacity-50" />
