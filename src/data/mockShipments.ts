@@ -68,8 +68,10 @@ export interface Container {
   type: string;
   quantity: number;
   descriptionOfGoods: string;
+  pieces: number;
   weightKg: number;
   volumeCbm: number;
+  chargeableKg: number;
   warehouse: string;
   storageStatus: "Okay" | "Alert" | "Full";
   portDepotStatus: string;
@@ -77,6 +79,17 @@ export interface Container {
   logisticStatus: string;
   inlandStatus: string;
   journey: ContainerJourneyStep[];
+  events?: ContainerEvents;
+}
+
+export type ContainerEventStatus = "completed" | "current" | "pending";
+
+export interface ContainerEvents {
+  gateIn: { status: ContainerEventStatus; date?: string };
+  loaded: { status: ContainerEventStatus; date?: string };
+  unloaded: { status: ContainerEventStatus; date?: string };
+  gateOut: { status: ContainerEventStatus; date?: string };
+  emptyReturn: { status: ContainerEventStatus; date?: string };
 }
 
 export interface MilestoneException {
@@ -137,11 +150,24 @@ export const COUNTRY_CODES: Record<string, string> = {
 
 function genContainer(id: string, type: string, origin: string, destination: string): Container {
   const goods = ["S.T.C.:17 PALLETS X 60 BAGS ON EACH PALLET", "ELECTRONIC COMPONENTS", "MACHINERY PARTS", "TEXTILE GOODS"][Math.floor(Math.random() * 4)];
+  const weightKg = 25000 + Math.floor(Math.random() * 2000);
+  const volumeCbm = 40 + Math.floor(Math.random() * 20);
+  const chargeableKg = Math.max(weightKg, Math.round(volumeCbm * 167));
+  const pieces = 800 + Math.floor(Math.random() * 400);
+  const eventStages: ContainerEventStatus[] = ["completed", "completed", "current", "pending", "pending"];
+  const stage = Math.floor(Math.random() * 5);
+  const mk = (i: number): { status: ContainerEventStatus; date?: string } => ({
+    status: i < stage ? "completed" : i === stage ? "current" : "pending",
+    date: i <= stage ? `Sep ${18 + i * 2}` : undefined,
+  });
+  void eventStages;
   return {
     id, type, quantity: 1,
     descriptionOfGoods: goods,
-    weightKg: 25000 + Math.floor(Math.random() * 2000),
-    volumeCbm: 40 + Math.floor(Math.random() * 20),
+    pieces,
+    weightKg,
+    volumeCbm,
+    chargeableKg,
     warehouse: "",
     storageStatus: "Okay",
     portDepotStatus: "Loaded on",
@@ -153,6 +179,13 @@ function genContainer(id: string, type: string, origin: string, destination: str
       { status: "In transit", location: "At sea", date: "Sep 20, 08:00 AM", completed: true },
       { status: "Arrived at port", location: destination, date: "Oct 2, 06:00 AM", completed: false },
     ],
+    events: {
+      gateIn: mk(0),
+      loaded: mk(1),
+      unloaded: mk(2),
+      gateOut: mk(3),
+      emptyReturn: mk(4),
+    },
   };
 }
 

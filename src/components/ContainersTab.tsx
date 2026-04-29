@@ -1,7 +1,8 @@
 import { useState } from "react";
-import type { Container } from "@/data/mockShipments";
-import { Table, List, ChevronDown, ChevronRight, Check, Clock, Package } from "lucide-react";
+import type { Container, ContainerEventStatus } from "@/data/mockShipments";
+import { Table, List, ChevronRight, Check, Clock, Package } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   containers: Container[];
@@ -15,7 +16,8 @@ const ContainersTab = ({ containers }: Props) => {
   }
 
   const totalWeight = containers.reduce((s, c) => s + c.weightKg, 0);
-  const totalVolume = containers.reduce((s, c) => s + c.volumeCbm, 0);
+  const totalChargeable = containers.reduce((s, c) => s + c.chargeableKg, 0);
+  const totalPieces = containers.reduce((s, c) => s + c.pieces, 0);
 
   return (
     <div className="space-y-4">
@@ -50,16 +52,12 @@ const ContainersTab = ({ containers }: Props) => {
                 <tr className="bg-muted/50 border-b">
                   <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">No.</th>
                   <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Marks & Numbers</th>
-                  <th className="text-center px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Qty</th>
                   <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Kind</th>
-                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Description Of Goods</th>
+                  <th className="text-center px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Status / Events</th>
+                  <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Pieces</th>
                   <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Weight (kg)</th>
-                  <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Vol (cbm)</th>
-                  <th className="text-center px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Storage</th>
-                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Port/Depot</th>
-                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Customs</th>
-                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Logistic</th>
-                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Inland</th>
+                  <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Chargeable (kg)</th>
+                  <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Description Of Goods</th>
                 </tr>
               </thead>
               <tbody>
@@ -69,35 +67,27 @@ const ContainersTab = ({ containers }: Props) => {
                     <td className="px-3 py-2.5">
                       <div className="font-semibold text-foreground">{c.id}</div>
                     </td>
-                    <td className="px-3 py-2.5 text-center">{c.quantity}</td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{c.type}</td>
+                    <td className="px-3 py-2.5"><EventsBar c={c} /></td>
+                    <td className="px-3 py-2.5 text-right font-medium">{c.pieces.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-right font-medium">{c.weightKg.toLocaleString()}</td>
+                    <td className="px-3 py-2.5 text-right font-medium">{c.chargeableKg.toLocaleString()}</td>
                     <td className="px-3 py-2.5 max-w-[180px]">
                       <div className="truncate" title={c.descriptionOfGoods}>{c.descriptionOfGoods}</div>
                     </td>
-                    <td className="px-3 py-2.5 text-right font-medium">{c.weightKg.toLocaleString()}</td>
-                    <td className="px-3 py-2.5 text-right">{c.volumeCbm}</td>
-                    <td className="px-3 py-2.5 text-center">
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${c.storageStatus === "Okay" ? "bg-success/10 text-success" : c.storageStatus === "Alert" ? "bg-warning/10 text-warning" : "bg-destructive/10 text-destructive"}`}>
-                        {c.storageStatus}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{c.portDepotStatus}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{c.customsStatus}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{c.logisticStatus}</td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{c.inlandStatus}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr className="bg-muted/40 border-t font-semibold">
                   <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2 text-muted-foreground">{containers.length} container{containers.length > 1 ? "s" : ""}</td>
                   <td className="px-3 py-2"></td>
-                  <td className="px-3 py-2 text-center">{containers.length}</td>
                   <td className="px-3 py-2"></td>
-                  <td className="px-3 py-2"></td>
+                  <td className="px-3 py-2 text-right">{totalPieces.toLocaleString()}</td>
                   <td className="px-3 py-2 text-right">{totalWeight.toLocaleString()}</td>
-                  <td className="px-3 py-2 text-right">{totalVolume}</td>
-                  <td colSpan={5} className="px-3 py-2"></td>
+                  <td className="px-3 py-2 text-right">{totalChargeable.toLocaleString()}</td>
+                  <td className="px-3 py-2"></td>
                 </tr>
               </tfoot>
             </table>
@@ -172,3 +162,49 @@ const ContainerJourneyCard = ({ container: c, index }: { container: Container; i
 };
 
 export default ContainersTab;
+
+const EVENT_DEFS: { key: keyof NonNullable<Container["events"]>; label: string }[] = [
+  { key: "gateIn", label: "GATE IN" },
+  { key: "loaded", label: "LOADED" },
+  { key: "unloaded", label: "UNLOADED" },
+  { key: "gateOut", label: "GATE OUT" },
+  { key: "emptyReturn", label: "EMPTY RETURN" },
+];
+
+const EventsBar = ({ c }: { c: Container }) => {
+  const ev = c.events;
+  if (!ev) return <span className="text-muted-foreground text-[11px]">—</span>;
+  return (
+    <TooltipProvider delayDuration={100}>
+      <div className="flex items-center gap-0.5">
+        {EVENT_DEFS.map((def, i) => {
+          const e = ev[def.key];
+          const color =
+            e.status === "completed"
+              ? "bg-success text-white border-success"
+              : e.status === "current"
+              ? "bg-primary text-white border-primary"
+              : "bg-muted text-muted-foreground border-border";
+          return (
+            <div key={def.key} className="flex items-center">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${color}`}>
+                    {e.status === "completed" ? <Check className="w-2.5 h-2.5" /> : <span className="text-[9px] font-bold">{i + 1}</span>}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-[11px]">
+                  <div className="font-semibold">{def.label}</div>
+                  <div className="text-muted-foreground">{e.date ?? "Pending"}</div>
+                </TooltipContent>
+              </Tooltip>
+              {i < EVENT_DEFS.length - 1 && (
+                <div className={`w-3 h-0.5 ${e.status === "completed" ? "bg-success" : "bg-border"}`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </TooltipProvider>
+  );
+};
