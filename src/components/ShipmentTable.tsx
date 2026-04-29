@@ -173,15 +173,18 @@ const createColumns = (): ColumnDef[] => [
       const c = getCarrier(s);
       if (!c) return <span className="text-muted-foreground">—</span>;
       return (
-        <div className="space-y-0.5">
-          <span
-            className="inline-block text-xs font-semibold text-foreground tracking-wider cursor-help"
-            title={c.name}
-          >
-            <HighlightText text={c.code} query={q} />
-          </span>
-          <div className="text-[10px] text-muted-foreground truncate">{c.name}</div>
-        </div>
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-block text-xs font-semibold text-foreground tracking-wider cursor-help">
+                <HighlightText text={c.code} query={q} />
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs max-w-xs">
+              {c.name}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       );
     },
   },
