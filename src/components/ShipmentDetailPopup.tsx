@@ -44,9 +44,11 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
   // --- Trip legs (mock generation per shipment) ---
   const isOcean = s.transportMode === "Ocean";
   const isAir = s.transportMode === "Air";
-  const tripTabLabel = isOcean ? "Voyage" : "Flights";
-  const tripTabValue = isOcean ? "voyage" : "flights";
-  const legNoun = isOcean ? "Voyage" : "Flight";
+  const isRoad = s.transportMode === "Rail"; // labelled "Road" in UI
+  const tripTabLabel = isAir ? "Flights" : "Voyage";
+  const tripTabValue = isAir ? "flights" : "voyage";
+  const legNoun = isAir ? "Flight" : "Voyage";
+  const TripIcon = isAir ? Plane : isRoad ? Truck : Ship;
 
   // Hash for deterministic mock data based on shipment id
   const hash = Array.from(s.id || s.houseBill).reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -166,7 +168,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
               {
                 value: tripTabValue,
                 label: tripTabLabel,
-                icon: isOcean ? <Ship className="w-3.5 h-3.5" /> : <Plane className="w-3.5 h-3.5" />,
+                icon: <TripIcon className="w-3.5 h-3.5" />,
                 count: legs.length,
               },
               { value: "events", label: "Events", icon: null, count: s.events.length },
@@ -366,15 +368,15 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                           {/* Carrier + vessel/flight */}
                           <div className="flex items-center gap-4 text-xs mb-2">
                             <div className="flex items-center gap-1.5 text-muted-foreground">
-                              {isOcean ? <Anchor className="w-3 h-3" /> : <Plane className="w-3 h-3" />}
+                              {isAir ? <Plane className="w-3 h-3" /> : isRoad ? <Truck className="w-3 h-3" /> : <Anchor className="w-3 h-3" />}
                               <span className="font-medium text-foreground">{leg.carrier}</span>
                             </div>
                             <div className="text-muted-foreground">
-                              <span className="text-[10px] uppercase tracking-wider">{isOcean ? "Vessel" : "Flight"}:</span>{" "}
+                              <span className="text-[10px] uppercase tracking-wider">{isAir ? "Flight" : isRoad ? "Truck" : "Vessel"}:</span>{" "}
                               <span className="font-medium text-foreground">{leg.vessel}</span>
                             </div>
                             <div className="text-muted-foreground">
-                              <span className="text-[10px] uppercase tracking-wider">{isOcean ? "Voyage" : "Ref"}:</span>{" "}
+                              <span className="text-[10px] uppercase tracking-wider">{isAir ? "Ref" : "Voyage"}:</span>{" "}
                               <span className="font-medium text-foreground">{leg.ref}</span>
                             </div>
                           </div>
