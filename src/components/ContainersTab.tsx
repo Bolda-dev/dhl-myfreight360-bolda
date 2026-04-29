@@ -261,10 +261,12 @@ const EventCell = ({ e }: { e?: ContainerEvent }) => {
               {isDone ? <Check className="w-2 h-2" /> : <Clock className="w-2 h-2" />}
             </div>
             <div className="leading-tight">
-              <div className={`text-[11px] font-medium ${isDone ? "text-foreground" : "text-primary"}`}>
-                {e.countryCode ?? ""}{e.countryCode && e.date ? " · " : ""}{e.date ?? ""}
+              {e.countryCode && (
+                <div className="text-[9px] font-semibold tracking-wider text-muted-foreground uppercase">{e.countryCode}</div>
+              )}
+              <div className={`text-[11px] font-semibold ${isDone ? "text-foreground" : "text-primary"}`}>
+                {e.date ?? ""}{e.time ? ` · ${e.time}` : ""}
               </div>
-              {e.time && <div className="text-[10px] text-muted-foreground">{e.time}</div>}
             </div>
           </div>
         </TooltipTrigger>
