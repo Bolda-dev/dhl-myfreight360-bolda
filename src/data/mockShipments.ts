@@ -224,6 +224,36 @@ function genContainer(id: string, type: string, origin: string, destination: str
   };
 }
 
+function genPackage(id: string, origin: string, destination: string): Container {
+  const goods = ["ELECTRONIC COMPONENTS", "PHARMACEUTICAL SAMPLES", "GARMENTS — 12 CTNS", "MACHINE SPARE PARTS", "DOCUMENTS & PROTOTYPES"][Math.floor(Math.random() * 5)];
+  const pieces = 5 + Math.floor(Math.random() * 40);
+  const weightKg = 80 + Math.floor(Math.random() * 600);
+  const volumeCbm = +(0.4 + Math.random() * 3).toFixed(2);
+  const chargeableKg = Math.max(weightKg, Math.round(volumeCbm * 167));
+  return {
+    id,
+    type: "PKG",
+    quantity: pieces,
+    descriptionOfGoods: goods,
+    pieces,
+    weightKg,
+    volumeCbm,
+    chargeableKg,
+    warehouse: "",
+    storageStatus: "Okay",
+    portDepotStatus: "",
+    customsStatus: "",
+    logisticStatus: "",
+    inlandStatus: "",
+    journey: [
+      { status: "Picked up", location: origin, date: "Sep 18, 10:00 AM", completed: true },
+      { status: "Departed", location: origin, date: "Sep 19, 03:30 PM", completed: true },
+      { status: "Arrived", location: destination, date: "Sep 20, 06:00 AM", completed: false },
+    ],
+    dimensions: `${40 + Math.floor(Math.random() * 80)}×${30 + Math.floor(Math.random() * 60)}×${20 + Math.floor(Math.random() * 50)} cm`,
+  };
+}
+
 // Helper to generate a basic shipment quickly
 function gen(
   id: string, fileNumber: string, houseBill: string, clientRef: string, opened: string,
@@ -234,15 +264,20 @@ function gen(
 ): Shipment {
   const completedAll = lastEvent === "Delivered";
   const inTransit = lastEvent === "In Transit";
+  const packageCount = mode === "Air" ? 1 + Math.floor(Math.random() * 3) : 0;
   return {
     id, fileNumber, houseBill, masterBill: `M: ${houseBill.slice(0,3)}${id.padStart(3,'0')}`,
     clientRef, opened, transportMode: mode, origin, destination,
-    shipper, consignee, exceptions, invoiceCount, containerCount, legs: null, etd, atd, eta, ata,
+    shipper, consignee, exceptions, invoiceCount,
+    containerCount: containerCount > 0 ? containerCount : packageCount,
+    legs: null, etd, atd, eta, ata,
     lastEvent, pickupRequest: pr, pickup: pu, customs: cu, pod,
     tags, remarks: [], invoices: [],
     containers: containerCount > 0
       ? Array.from({ length: containerCount }, (_, i) => genContainer(`CNTR${id}${i}`, i % 2 === 0 ? "40HC" : "20GP", origin, destination))
-      : [],
+      : packageCount > 0
+        ? Array.from({ length: packageCount }, (_, i) => genPackage(`PKG${id}-${i + 1}`, origin, destination))
+        : [],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
       { label: "Pickup", completed: pu, active: !pu && pr },
@@ -489,12 +524,22 @@ const additionalShipments: Shipment[] = [
   gen("35","s112233030","9AB1030","CLI-60030","9/17/2025 12:30 PM","Air","BEIJING","DUBAI","AIR CHINA CARGO","DUBAI ELECTRONICS FZE",0,1,0,"9/19/2025 11:00 PM","9/19/2025 11:15 PM","9/20/2025 05:00 AM","9/20/2025 04:50 AM","Delivered",true,true,true,true,["VIP Client"]),
 ];
 
+// Post-process: ensure Air shipments have packages
+const ensurePackages = (s: Shipment): Shipment => {
+  if (s.transportMode !== "Air" || s.containers.length > 0) return s;
+  const count = 1 + Math.floor(Math.random() * 3);
+  const pkgs = Array.from({ length: count }, (_, i) => genPackage(`PKG${s.id}-${i + 1}`, s.origin, s.destination));
+  return { ...s, containers: pkgs, containerCount: count };
+};
+const originalWithPkgs = originalShipments.map(ensurePackages);
+const additionalWithPkgs = additionalShipments.map(ensurePackages);
+
 // Duplicate to double the dataset
-const duplicated = [...originalShipments, ...additionalShipments].map((s, i) => ({
+const duplicated = [...originalWithPkgs, ...additionalWithPkgs].map((s, i) => ({
   ...s,
   id: `dup-${s.id}-${i}`,
   fileNumber: `${s.fileNumber}d`,
   houseBill: `${s.houseBill}D`,
 }));
 
-export const mockShipments: Shipment[] = [...originalShipments, ...additionalShipments, ...duplicated];
+export const mockShipments: Shipment[] = [...originalWithPkgs, ...additionalWithPkgs, ...duplicated];
