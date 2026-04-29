@@ -8,10 +8,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import ShipmentDetailPopup from "@/components/ShipmentDetailPopup";
-import InvoicesDialog from "@/components/InvoicesDialog";
-import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
-import TagsDialog from "@/components/TagsDialog";
-import RemarksDialog from "@/components/RemarksDialog";
 import ColumnManagerDialog, { type ActionVisibility } from "@/components/ColumnManagerDialog";
 
 // --- helpers ---
