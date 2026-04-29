@@ -176,7 +176,7 @@ const createColumns = (): ColumnDef[] => [
         <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="inline-block text-xs font-semibold text-foreground tracking-wider cursor-help">
+              <span className="inline-block text-xs font-semibold text-foreground tracking-wider">
                 <HighlightText text={c.code} query={q} />
               </span>
             </TooltipTrigger>
