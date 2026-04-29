@@ -170,14 +170,30 @@ const ContainerJourneyCard = ({ container: c, index }: { container: Container; i
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="ml-7 mt-1 border rounded-lg p-4 bg-muted/20 space-y-4">
-          {/* Details */}
+          {/* Details — mirrors the table columns */}
           <div className="grid grid-cols-3 gap-3 text-xs">
-            <div><span className="text-muted-foreground">Goods:</span> <span className="font-medium text-foreground">{c.descriptionOfGoods}</span></div>
-            <div><span className="text-muted-foreground">Customs:</span> <span className="font-medium text-foreground">{c.customsStatus}</span></div>
-            <div><span className="text-muted-foreground">Port/Depot:</span> <span className="font-medium text-foreground">{c.portDepotStatus}</span></div>
-            <div><span className="text-muted-foreground">Logistic:</span> <span className="font-medium text-foreground">{c.logisticStatus}</span></div>
-            <div><span className="text-muted-foreground">Inland:</span> <span className="font-medium text-foreground">{c.inlandStatus}</span></div>
+            <div><span className="text-muted-foreground">Kind:</span> <span className="font-medium text-foreground">{c.type}</span></div>
+            <div><span className="text-muted-foreground">Pieces:</span> <span className="font-medium text-foreground">{c.pieces.toLocaleString()}</span></div>
+            <div><span className="text-muted-foreground">Weight:</span> <span className="font-medium text-foreground">{c.weightKg.toLocaleString()} kg</span></div>
+            <div><span className="text-muted-foreground">Chargeable:</span> <span className="font-medium text-foreground">{c.chargeableKg.toLocaleString()} kg</span></div>
+            <div className="col-span-2"><span className="text-muted-foreground">Goods:</span> <span className="font-medium text-foreground">{c.descriptionOfGoods}</span></div>
+            {c.dimensions && <div className="col-span-3"><span className="text-muted-foreground">Dimensions:</span> <span className="font-medium text-foreground">{c.dimensions}</span></div>}
           </div>
+
+          {/* Events — same as table */}
+          {c.events && (
+            <div>
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Events</div>
+              <div className="grid grid-cols-5 gap-2">
+                {EVENT_DEFS.map((def) => (
+                  <div key={def.key} className="border rounded p-2 bg-background">
+                    <div className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">{def.label}</div>
+                    <EventCell e={c.events?.[def.key]} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Journey timeline */}
           <div>
