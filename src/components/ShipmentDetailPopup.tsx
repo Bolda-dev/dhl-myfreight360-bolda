@@ -2,7 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Shipment } from "@/data/mockShipments";
 import { CITY_CODES, COUNTRY_CODES } from "@/data/mockShipments";
-import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, X, ArrowRight, Anchor } from "lucide-react";
+import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, Package, X, ArrowRight, Anchor } from "lucide-react";
 import ContainersTab from "./ContainersTab";
 
 interface Props {
@@ -191,7 +191,12 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
               },
               { value: "events", label: "Events", icon: null, count: s.events.length },
               { value: "invoices", label: "Invoices", icon: <FileText className="w-3.5 h-3.5" />, count: s.invoiceCount },
-              { value: "containers", label: "Containers", icon: <Container className="w-3.5 h-3.5" />, count: s.containerCount },
+              {
+                value: "containers",
+                label: isAir ? "Packages" : "Containers",
+                icon: isAir ? <Package className="w-3.5 h-3.5" /> : <Container className="w-3.5 h-3.5" />,
+                count: s.containerCount,
+              },
               { value: "tags", label: "Tags", icon: <Tag className="w-3.5 h-3.5" />, count: s.tags.length },
               { value: "remarks", label: "Remarks", icon: <MessageSquare className="w-3.5 h-3.5" />, count: s.remarks.length },
             ].map(tab => (
@@ -476,7 +481,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
             {/* Containers Tab */}
             <TabsContent value="containers" className="p-6 m-0">
-              <ContainersTab containers={s.containers} />
+              <ContainersTab containers={s.containers} isAir={isAir} />
             </TabsContent>
 
             {/* Tags Tab */}
