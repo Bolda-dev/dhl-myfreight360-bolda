@@ -440,13 +440,13 @@ const createColumns = (): ColumnDef[] => [
   },
   {
     id: "containers", label: "Cnt.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
-    render: (s) => (
+    render: (s, h) => (
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold rounded-md w-7 h-7 transition-colors cursor-default ${s.containerCount > 0 ? "text-primary hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+            <button onClick={() => h.openContainers(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold rounded-md w-7 h-7 transition-colors ${s.containerCount > 0 ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
               <Container className="w-3.5 h-3.5" />{s.containerCount > 0 ? <span className="text-[10px]">{s.containerCount}</span> : null}
-            </span>
+            </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">Containers</TooltipContent>
         </Tooltip>
