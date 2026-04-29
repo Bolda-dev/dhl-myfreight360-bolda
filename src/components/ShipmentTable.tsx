@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark, type MilestoneException } from "@/data/mockShipments";
 import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container, Clock, ArrowUp, ArrowDown, ArrowUpDown, Filter } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import ShipmentDetailPopup from "@/components/ShipmentDetailPopup";
 import InvoicesDialog from "@/components/InvoicesDialog";
 import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
@@ -517,9 +519,12 @@ const ShipmentTable = () => {
   });
   const [mergeOriginDest, setMergeOriginDest] = useState(true);
 
-  // Sort & filter state per column (UI indication)
+  // Sort & filter state per column
   const [sortState, setSortState] = useState<{ colId: string; dir: "asc" | "desc" } | null>(null);
-  const [filteredCols, setFilteredCols] = useState<Record<string, boolean>>({});
+  // Map of colId -> Set of selected raw string values; if undefined or empty -> not filtered
+  const [columnFilters, setColumnFilters] = useState<Record<string, Set<string>>>({});
+  const [filterPopoverCol, setFilterPopoverCol] = useState<string | null>(null);
+  const [filterSearch, setFilterSearch] = useState("");
 
   const toggleSort = (colId: string) => {
     setSortState((prev) => {
@@ -528,9 +533,44 @@ const ShipmentTable = () => {
       return null;
     });
   };
-  const toggleFilter = (colId: string) => {
-    setFilteredCols((prev) => ({ ...prev, [colId]: !prev[colId] }));
+  const isColumnFiltered = (colId: string) => {
+    const set = columnFilters[colId];
+    return !!set && set.size > 0;
   };
+
+  // Per-column accessor: returns a comparable/sortable string for a shipment
+  const getColumnValue = (s: Shipment, colId: string): string => {
+    switch (colId) {
+      case "transportMode":
+        return s.transportMode === "Rail" ? "Road" : s.transportMode === "Ocean" ? "Sea" : s.transportMode;
+      case "hblMbl":
+        return s.houseBill;
+      case "originDest":
+        return `${CITY_CODES[s.origin] || s.origin} → ${CITY_CODES[s.destination] || s.destination}`;
+      case "origin":
+        return CITY_CODES[s.origin] || s.origin;
+      case "destination":
+        return CITY_CODES[s.destination] || s.destination;
+      case "departure":
+        return s.etd || "";
+      case "arrival":
+        return s.eta || "";
+      case "shipperConsignee":
+        return s.shipper;
+      case "clientRef":
+        return s.clientRef;
+      case "lastEvent":
+        return s.lastEvent;
+      case "milestones": {
+        const completed = s.statusSteps.filter((st) => st.completed).length;
+        return String(completed).padStart(2, "0");
+      }
+      default:
+        return "";
+    }
+  };
+
+  const isDateColumn = (colId: string) => colId === "departure" || colId === "arrival";
 
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
