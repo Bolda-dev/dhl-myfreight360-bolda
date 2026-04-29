@@ -47,7 +47,6 @@ const ACTION_LABELS: Record<string, string> = {
 // Extra dummy columns shown only in the manager to demonstrate scroll behavior
 const DUMMY_AVAILABLE_COLUMNS: ColumnInfo[] = [
   { id: "dummy-incoterm", label: "Incoterm" },
-  { id: "dummy-carrier", label: "Carrier" },
   { id: "dummy-vessel", label: "Vessel Name" },
   { id: "dummy-voyage", label: "Voyage Number" },
   { id: "dummy-flight", label: "Flight Number" },
