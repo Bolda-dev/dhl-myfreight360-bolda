@@ -1,4 +1,4 @@
-import dhlLogo from "@/assets/dhl-logo.png";
+import brandLogo from "@/assets/brand-logo.svg";
 import { Settings, Bell, User, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import {
@@ -29,9 +29,8 @@ const Navbar = () => {
   return (
     <header className="h-11 bg-navbar border-b border-navbar-border flex items-center px-4 gap-1 shrink-0 z-20">
       {/* Logo + brand */}
-      <div className="flex items-center gap-2 mr-6">
-        <img src={dhlLogo} alt="DHL" className="h-5 object-contain" />
-        <span className="text-sm font-semibold text-navbar-foreground tracking-tight">MyFreight360</span>
+      <div className="flex items-center mr-6">
+        <img src={brandLogo} alt="Brand logo" className="h-6 object-contain" />
       </div>
 
       {/* Main nav - text only */}
