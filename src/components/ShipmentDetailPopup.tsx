@@ -296,6 +296,110 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
               </div>
             </TabsContent>
 
+            {/* Flights / Voyage Tab */}
+            <TabsContent value={tripTabValue} className="p-6 m-0">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">Trip Itinerary</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {legs.length} {legNoun.toLowerCase()}{legs.length > 1 ? "s" : ""} from {oCode} to {dCode}
+                  </p>
+                </div>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {legs.length > 1 ? `${legs.length - 1} Transshipment${legs.length - 1 > 1 ? "s" : ""}` : "Direct"}
+                </span>
+              </div>
+
+              <div className="relative">
+                {legs.map((leg, i) => {
+                  const statusStyle =
+                    leg.status === "completed"
+                      ? "bg-success/10 text-success border-success/20"
+                      : leg.status === "in_transit"
+                        ? "bg-primary/10 text-primary border-primary/20"
+                        : "bg-muted text-muted-foreground border-border";
+                  const statusLabel =
+                    leg.status === "completed" ? "Completed" : leg.status === "in_transit" ? "In Transit" : "Scheduled";
+                  return (
+                    <div key={i} className="relative">
+                      {/* Connector line between legs */}
+                      {i < legs.length - 1 && (
+                        <div className="absolute left-3 top-10 bottom-[-12px] w-0.5 bg-border" />
+                      )}
+
+                      <div className="flex gap-3 mb-3">
+                        {/* Leg index circle */}
+                        <div className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold border-2 z-10 bg-background ${
+                          leg.status === "completed"
+                            ? "border-success text-success"
+                            : leg.status === "in_transit"
+                              ? "border-primary text-primary"
+                              : "border-muted-foreground/30 text-muted-foreground"
+                        }`}>
+                          {leg.index}
+                        </div>
+
+                        <div className="flex-1 border rounded-lg p-3 bg-card">
+                          {/* Header: route + status */}
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <div>
+                                <div className="font-bold text-foreground">{leg.fromCode}</div>
+                                {leg.fromCountry && <div className="text-[10px] text-muted-foreground">{leg.fromCountry}</div>}
+                              </div>
+                              <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <div className="font-bold text-foreground">{leg.toCode}</div>
+                                {leg.toCountry && <div className="text-[10px] text-muted-foreground">{leg.toCountry}</div>}
+                              </div>
+                              {!leg.isLast && (
+                                <span className="ml-2 text-[10px] font-medium text-warning bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">
+                                  Transshipment
+                                </span>
+                              )}
+                            </div>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${statusStyle}`}>
+                              {statusLabel}
+                            </span>
+                          </div>
+
+                          {/* Carrier + vessel/flight */}
+                          <div className="flex items-center gap-4 text-xs mb-2">
+                            <div className="flex items-center gap-1.5 text-muted-foreground">
+                              {isOcean ? <Anchor className="w-3 h-3" /> : <Plane className="w-3 h-3" />}
+                              <span className="font-medium text-foreground">{leg.carrier}</span>
+                            </div>
+                            <div className="text-muted-foreground">
+                              <span className="text-[10px] uppercase tracking-wider">{isOcean ? "Vessel" : "Flight"}:</span>{" "}
+                              <span className="font-medium text-foreground">{leg.vessel}</span>
+                            </div>
+                            <div className="text-muted-foreground">
+                              <span className="text-[10px] uppercase tracking-wider">{isOcean ? "Voyage" : "Ref"}:</span>{" "}
+                              <span className="font-medium text-foreground">{leg.ref}</span>
+                            </div>
+                          </div>
+
+                          {/* Times */}
+                          <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t">
+                            <div>
+                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Departure</div>
+                              <div className="font-medium text-foreground mt-0.5">{formatDate(leg.etd)}</div>
+                              <div className="text-[10px] text-muted-foreground">{leg.from}</div>
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Arrival</div>
+                              <div className="font-medium text-foreground mt-0.5">{formatDate(leg.eta)}</div>
+                              <div className="text-[10px] text-muted-foreground">{leg.to}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </TabsContent>
+
             {/* Events Tab */}
             <TabsContent value="events" className="p-6 m-0">
               <div className="space-y-3">
