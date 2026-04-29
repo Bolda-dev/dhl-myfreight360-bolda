@@ -256,7 +256,7 @@ const EventCell = ({ e }: { e?: ContainerEvent }) => {
           <TooltipTrigger asChild>
             <div className="inline-flex"><Minus className="w-3 h-3 text-muted-foreground/50" /></div>
           </TooltipTrigger>
-          <TooltipContent side="top" className="text-[11px] max-w-[220px]">
+          <TooltipContent side="top" className="text-[11px] max-w-[280px] whitespace-normal break-words">
             <div className="font-semibold">Pending</div>
             {e.location && <div className="text-muted-foreground">{e.location}{e.countryCode ? `, ${e.countryCode}` : ""}</div>}
             {e.note && <div className="text-muted-foreground mt-1">{e.note}</div>}
