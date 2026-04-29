@@ -264,6 +264,7 @@ function gen(
 ): Shipment {
   const completedAll = lastEvent === "Delivered";
   const inTransit = lastEvent === "In Transit";
+  const packageCount = mode === "Air" ? 1 + Math.floor(Math.random() * 3) : 0;
   return {
     id, fileNumber, houseBill, masterBill: `M: ${houseBill.slice(0,3)}${id.padStart(3,'0')}`,
     clientRef, opened, transportMode: mode, origin, destination,
@@ -272,7 +273,9 @@ function gen(
     tags, remarks: [], invoices: [],
     containers: containerCount > 0
       ? Array.from({ length: containerCount }, (_, i) => genContainer(`CNTR${id}${i}`, i % 2 === 0 ? "40HC" : "20GP", origin, destination))
-      : [],
+      : packageCount > 0
+        ? Array.from({ length: packageCount }, (_, i) => genPackage(`PKG${id}-${i + 1}`, origin, destination))
+        : [],
     statusSteps: [
       { label: "Order Accepted", completed: true, active: false },
       { label: "Pickup", completed: pu, active: !pu && pr },
