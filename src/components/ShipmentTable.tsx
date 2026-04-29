@@ -933,10 +933,92 @@ const ShipmentTable = () => {
                               <PopoverContent
                                 align="start"
                                 sideOffset={6}
-                                className="w-56 p-0"
+                                className={isDateColumn(col.id) ? "w-auto p-0" : "w-56 p-0"}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {(() => {
+                                {isDateColumn(col.id) ? (() => {
+                                  const df = dateFilters[col.id] || { field: "estimated" as const, range: undefined };
+                                  const setField = (field: "estimated" | "actual") => {
+                                    setDateFilters((prev) => ({ ...prev, [col.id]: { ...(prev[col.id] || { range: undefined }), field } }));
+                                  };
+                                  const setRange = (range: DateRange | undefined) => {
+                                    setDateFilters((prev) => {
+                                      const cur = prev[col.id] || { field: "estimated" as const, range: undefined };
+                                      const next = { ...prev, [col.id]: { ...cur, range } };
+                                      return next;
+                                    });
+                                  };
+                                  const clearDate = () => {
+                                    setDateFilters((prev) => {
+                                      const next = { ...prev };
+                                      delete next[col.id];
+                                      return next;
+                                    });
+                                  };
+                                  const isDeparture = col.id === "departure";
+                                  const estLabel = isDeparture ? "ETD" : "ETA";
+                                  const actLabel = isDeparture ? "ATD" : "ATA";
+                                  const fmt = (d?: Date) =>
+                                    d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+                                  return (
+                                    <div className="flex flex-col">
+                                      <div className="p-2 border-b">
+                                        <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                                          Filter by
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-1">
+                                          {[
+                                            { id: "estimated" as const, label: estLabel, sub: "Estimated" },
+                                            { id: "actual" as const, label: actLabel, sub: "Actual" },
+                                          ].map((opt) => (
+                                            <button
+                                              key={opt.id}
+                                              onClick={() => setField(opt.id)}
+                                              className={cn(
+                                                "flex flex-col items-start px-2 py-1.5 rounded text-xs border transition-colors",
+                                                df.field === opt.id
+                                                  ? "bg-primary/10 border-primary text-foreground"
+                                                  : "border-border text-muted-foreground hover:bg-accent"
+                                              )}
+                                            >
+                                              <span className="font-semibold">{opt.label}</span>
+                                              <span className="text-[10px] text-muted-foreground">{opt.sub}</span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="px-2 pt-2 pb-1 border-b flex items-center gap-2 text-[11px]">
+                                        <CalendarIcon className="w-3 h-3 text-muted-foreground" />
+                                        <span className="text-muted-foreground">{fmt(df.range?.from)}</span>
+                                        <span className="text-muted-foreground">→</span>
+                                        <span className="text-muted-foreground">{fmt(df.range?.to)}</span>
+                                      </div>
+                                      <Calendar
+                                        mode="range"
+                                        selected={df.range}
+                                        onSelect={setRange}
+                                        numberOfMonths={2}
+                                        initialFocus
+                                        className={cn("p-3 pointer-events-auto")}
+                                      />
+                                      <div className="flex justify-between items-center p-2 border-t">
+                                        <button
+                                          onClick={clearDate}
+                                          disabled={!isColumnFiltered(col.id)}
+                                          className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+                                        >
+                                          Clear filter
+                                        </button>
+                                        <button
+                                          onClick={() => setFilterPopoverCol(null)}
+                                          className="text-[11px] px-2 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90"
+                                        >
+                                          Done
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })() : (() => {
                                   const values = getUniqueValuesForColumn(col.id);
                                   const selected = columnFilters[col.id] || new Set<string>();
                                   const filtered = filterSearch
