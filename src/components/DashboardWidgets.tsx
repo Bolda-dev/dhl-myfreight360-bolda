@@ -307,12 +307,6 @@ const LoadGauge = () => {
               endAngle={-30}
               data={data}
             >
-              <defs>
-                <linearGradient id="gauge-fill" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor={gaugeColor} stopOpacity={0.7} />
-                  <stop offset="100%" stopColor={gaugeColor} stopOpacity={1} />
-                </linearGradient>
-              </defs>
               <PolarAngleAxis
                 type="number"
                 domain={[0, 100]}
@@ -323,7 +317,7 @@ const LoadGauge = () => {
                 background={{ fill: "hsl(var(--muted))" }}
                 dataKey="value"
                 cornerRadius={10}
-                fill="url(#gauge-fill)"
+                fill={gaugeColor}
               />
             </RadialBarChart>
           </ResponsiveContainer>
