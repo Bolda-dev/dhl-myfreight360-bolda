@@ -416,7 +416,7 @@ const TransportModes = () => {
           return (
             <div
               key={key}
-              className="relative rounded-lg border bg-gradient-to-br from-muted/30 to-transparent p-3 hover:border-foreground/20 transition-colors"
+              className="relative rounded-lg border bg-muted/30 p-3 hover:border-foreground/20 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div
@@ -445,19 +445,20 @@ const TransportModes = () => {
                 <div className="w-20 h-10 shrink-0 hidden sm:block">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trendData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id={`spark-${key}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={meta.color} stopOpacity={0.4} />
-                          <stop offset="100%" stopColor={meta.color} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
                       <Area
                         type="monotone"
                         dataKey="v"
                         stroke={meta.color}
                         strokeWidth={1.5}
-                        fill={`url(#spark-${key})`}
+                        fill={meta.color}
+                        fillOpacity={0.18}
                         isAnimationActive={false}
+                      />
+                      <ReTooltip
+                        content={<ChartTooltip unit={meta.label.toLowerCase()} />}
+                        wrapperStyle={{ zIndex: 60, outline: "none" }}
+                        allowEscapeViewBox={{ x: true, y: true }}
+                        cursor={{ stroke: meta.color, strokeOpacity: 0.3, strokeWidth: 1 }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
