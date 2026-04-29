@@ -1208,18 +1208,15 @@ const ShipmentTable = () => {
         </div>
       </div>
 
-      {/* Dialogs & Sidebar */}
-      <ShipmentDetailPopup shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
-      {invoiceShipment && (
-        <InvoicesDialog invoices={invoiceShipment.invoices} houseBill={invoiceShipment.houseBill} open={!!invoiceShipment} onClose={() => setInvoiceShipment(null)} />
-      )}
-      <ShipmentEventsDialog shipment={eventsShipment} open={!!eventsShipment} onClose={() => setEventsShipment(null)} />
-      {tagsShipment && (
-        <TagsDialog tags={tagsShipment.tags} houseBill={tagsShipment.houseBill} open={!!tagsShipment} onClose={() => setTagsShipment(null)} onSave={handleTagsSave} />
-      )}
-      {remarksShipment && (
-        <RemarksDialog remarks={remarksShipment.remarks} houseBill={remarksShipment.houseBill} open={!!remarksShipment} onClose={() => setRemarksShipment(null)} onAdd={handleRemarkAdd} />
-      )}
+      {/* Unified shipment popup */}
+      <ShipmentDetailPopup
+        shipment={selectedShipment}
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        initialTab={detailTab}
+        onTagsChange={handleTagsSave}
+        onRemarkAdd={handleRemarkAdd}
+      />
       <ColumnManagerDialog
         open={columnManagerOpen}
         onClose={() => setColumnManagerOpen(false)}
