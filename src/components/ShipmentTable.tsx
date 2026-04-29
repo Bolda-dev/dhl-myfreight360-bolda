@@ -696,7 +696,7 @@ const ShipmentTable = () => {
     openRemarks: (s) => setRemarksShipment(s),
   };
 
-  const filteredShipments = shipments.filter((s) => {
+  const baseFiltered = shipments.filter((s) => {
     const matchesStatus = activeStatus === "All"
       || s.lastEvent === activeStatus
       || (activeStatus === "Delayed" && s.events.some(e => (e.description || "").toLowerCase().includes("delay")));
@@ -711,8 +711,46 @@ const ShipmentTable = () => {
       s.destination.toLowerCase().includes(q) ||
       (CITY_CODES[s.origin] || "").toLowerCase().includes(q) ||
       (CITY_CODES[s.destination] || "").toLowerCase().includes(q);
-    return matchesStatus && matchesSearch;
+    if (!matchesStatus || !matchesSearch) return false;
+    // Per-column filters
+    for (const [colId, valueSet] of Object.entries(columnFilters)) {
+      if (!valueSet || valueSet.size === 0) continue;
+      const v = getColumnValue(s, colId);
+      if (!valueSet.has(v)) return false;
+    }
+    return true;
   });
+
+  // Apply sort
+  const filteredShipments = (() => {
+    if (!sortState) return baseFiltered;
+    const { colId, dir } = sortState;
+    const sorted = [...baseFiltered].sort((a, b) => {
+      const va = getColumnValue(a, colId);
+      const vb = getColumnValue(b, colId);
+      if (isDateColumn(colId)) {
+        const da = va ? new Date(va).getTime() : 0;
+        const db = vb ? new Date(vb).getTime() : 0;
+        return da - db;
+      }
+      return va.localeCompare(vb, undefined, { numeric: true, sensitivity: "base" });
+    });
+    return dir === "asc" ? sorted : sorted.reverse();
+  })();
+
+  // Unique values for the filter popover of a given column (computed from non-column-filtered base)
+  const getUniqueValuesForColumn = (colId: string): string[] => {
+    const vals = new Set<string>();
+    shipments.forEach((s) => {
+      const v = getColumnValue(s, colId);
+      if (v) vals.add(v);
+    });
+    return Array.from(vals).sort((a, b) =>
+      isDateColumn(colId)
+        ? new Date(a).getTime() - new Date(b).getTime()
+        : a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+    );
+  };
 
   const isActionCol = (id: string) => ACTION_COL_IDS.includes(id);
 
