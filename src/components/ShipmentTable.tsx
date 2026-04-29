@@ -933,7 +933,7 @@ const ShipmentTable = () => {
                         </TooltipProvider>
                       ) : (
                         <div className="flex items-center gap-1">
-                          <span className="cursor-grab active:cursor-grabbing text-xs whitespace-pre-line leading-tight">{col.label}</span>
+                          <span className="cursor-grab active:cursor-grabbing text-xs whitespace-nowrap leading-tight">{col.label.replace(/\n/g, " ")}</span>
                           <div className="flex items-center gap-0.5 ml-auto">
                             <TooltipProvider delayDuration={200}>
                               <Tooltip>
