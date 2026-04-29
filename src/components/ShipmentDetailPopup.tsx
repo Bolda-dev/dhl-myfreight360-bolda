@@ -2,7 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Shipment } from "@/data/mockShipments";
 import { CITY_CODES, COUNTRY_CODES } from "@/data/mockShipments";
-import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, X } from "lucide-react";
+import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, X, ArrowRight, Anchor } from "lucide-react";
 import ContainersTab from "./ContainersTab";
 
 interface Props {
@@ -40,6 +40,80 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
   const steps = s.statusSteps.slice(1);
   const MILESTONE_LABELS = ["PKP", "DPT", "ARR", "POD"];
   const MILESTONE_FULL = ["Pickup", "Departed", "Arrived", "Delivered"];
+
+  // --- Trip legs (mock generation per shipment) ---
+  const isOcean = s.transportMode === "Ocean";
+  const isAir = s.transportMode === "Air";
+  const tripTabLabel = isOcean ? "Voyage" : "Flights";
+  const tripTabValue = isOcean ? "voyage" : "flights";
+  const legNoun = isOcean ? "Voyage" : "Flight";
+
+  // Hash for deterministic mock data based on shipment id
+  const hash = Array.from(s.id || s.houseBill).reduce((a, c) => a + c.charCodeAt(0), 0);
+  const legCount = isOcean ? (hash % 2 === 0 ? 1 : 2) : (hash % 3 === 0 ? 3 : hash % 2 === 0 ? 2 : 1);
+
+  const transshipmentHubs = isOcean
+    ? ["Singapore", "Rotterdam", "Hamburg", "Algeciras", "Colombo", "Jebel Ali"]
+    : ["Frankfurt", "Dubai", "Hong Kong", "Doha", "Istanbul", "Amsterdam"];
+  const carriers = isOcean
+    ? ["Maersk", "MSC", "CMA CGM", "Hapag-Lloyd", "ONE", "Evergreen"]
+    : ["Lufthansa Cargo", "Emirates SkyCargo", "Cathay Pacific Cargo", "Qatar Airways Cargo", "Turkish Cargo", "KLM Cargo"];
+  const vesselNames = isOcean
+    ? ["MV Ever Given", "MV Madrid Maersk", "MV MSC Oscar", "MV CMA CGM Marco Polo", "MV Hapag Berlin"]
+    : ["LH8401", "EK9872", "CX2031", "QR8120", "TK6493", "KL6831"];
+
+  const buildLegs = () => {
+    const legs = [];
+    let prevLocation = s.origin;
+    let prevCode = oCode;
+    let prevCountry = oCountry;
+
+    const baseEtd = s.etd ? new Date(s.etd) : new Date();
+    const baseEta = s.eta ? new Date(s.eta) : new Date(baseEtd.getTime() + 1000 * 60 * 60 * 24 * 14);
+    const totalMs = baseEta.getTime() - baseEtd.getTime();
+    const segmentMs = totalMs / legCount;
+
+    for (let i = 0; i < legCount; i++) {
+      const isLast = i === legCount - 1;
+      const nextLocation = isLast ? s.destination : transshipmentHubs[(hash + i) % transshipmentHubs.length];
+      const nextCode = isLast ? dCode : nextLocation.slice(0, 3).toUpperCase();
+      const nextCountry = isLast ? dCountry : "";
+      const carrier = carriers[(hash + i) % carriers.length];
+      const vessel = vesselNames[(hash + i + (isOcean ? 1 : 0)) % vesselNames.length];
+      const ref = isOcean
+        ? `V${(2401 + (hash % 50) + i)}E`
+        : `${vessel}/${baseEtd.getDate()}${["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"][baseEtd.getMonth()]}`;
+
+      const legEtd = new Date(baseEtd.getTime() + i * segmentMs);
+      const legEta = new Date(baseEtd.getTime() + (i + 1) * segmentMs);
+      const now = Date.now();
+      const status: "completed" | "in_transit" | "scheduled" =
+        legEta.getTime() < now ? "completed" : legEtd.getTime() < now ? "in_transit" : "scheduled";
+
+      legs.push({
+        index: i + 1,
+        from: prevLocation,
+        fromCode: prevCode,
+        fromCountry: prevCountry,
+        to: nextLocation,
+        toCode: nextCode,
+        toCountry: nextCountry,
+        carrier,
+        vessel,
+        ref,
+        etd: legEtd.toISOString(),
+        eta: legEta.toISOString(),
+        status,
+        isLast,
+      });
+      prevLocation = nextLocation;
+      prevCode = nextCode;
+      prevCountry = nextCountry;
+    }
+    return legs;
+  };
+
+  const legs = buildLegs();
 
   // Exceptions from milestones
   const exceptions = steps.filter(step => step.exception).map((step, i) => ({
@@ -89,6 +163,12 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
           <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6 h-auto py-0 gap-0 shrink-0">
             {[
               { value: "general", label: "General", icon: null },
+              {
+                value: tripTabValue,
+                label: tripTabLabel,
+                icon: isOcean ? <Ship className="w-3.5 h-3.5" /> : <Plane className="w-3.5 h-3.5" />,
+                count: legs.length,
+              },
               { value: "events", label: "Events", icon: null, count: s.events.length },
               { value: "invoices", label: "Invoices", icon: <FileText className="w-3.5 h-3.5" />, count: s.invoiceCount },
               { value: "containers", label: "Containers", icon: <Container className="w-3.5 h-3.5" />, count: s.containerCount },
