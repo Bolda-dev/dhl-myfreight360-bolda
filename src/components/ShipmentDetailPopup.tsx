@@ -364,13 +364,13 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm">
                               <div>
-                                <div className="font-bold text-foreground">{leg.fromCode}</div>
-                                {leg.fromCountry && <div className="text-[10px] text-muted-foreground">{leg.fromCountry}</div>}
+                                <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Load</div>
+                                <div className="font-bold text-foreground">{leg.loadLocode}</div>
                               </div>
                               <ArrowRight className="w-4 h-4 text-muted-foreground" />
                               <div>
-                                <div className="font-bold text-foreground">{leg.toCode}</div>
-                                {leg.toCountry && <div className="text-[10px] text-muted-foreground">{leg.toCountry}</div>}
+                                <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Discharge</div>
+                                <div className="font-bold text-foreground">{leg.dischargeLocode}</div>
                               </div>
                               {!leg.isLast && (
                                 <span className="ml-2 text-[10px] font-medium text-warning bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">
@@ -402,13 +402,19 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                           {/* Times */}
                           <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t">
                             <div>
-                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Departure</div>
-                              <div className="font-medium text-foreground mt-0.5">{formatDate(leg.etd)}</div>
+                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">ETD / ATD</div>
+                              <div className={`font-medium mt-0.5 ${leg.departureActual ? "text-success" : "text-foreground"}`}>
+                                {formatDate(leg.etd)}
+                                <span className="ml-1 text-[10px] text-muted-foreground">({leg.departureActual ? "ATD" : "ETD"})</span>
+                              </div>
                               <div className="text-[10px] text-muted-foreground">{leg.from}</div>
                             </div>
                             <div>
-                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Arrival</div>
-                              <div className="font-medium text-foreground mt-0.5">{formatDate(leg.eta)}</div>
+                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">ETA / ATA</div>
+                              <div className={`font-medium mt-0.5 ${leg.arrivalActual ? "text-success" : "text-foreground"}`}>
+                                {formatDate(leg.eta)}
+                                <span className="ml-1 text-[10px] text-muted-foreground">({leg.arrivalActual ? "ATA" : "ETA"})</span>
+                              </div>
                               <div className="text-[10px] text-muted-foreground">{leg.to}</div>
                             </div>
                           </div>
