@@ -85,11 +85,22 @@ export interface Container {
 export type ContainerEventStatus = "completed" | "current" | "pending";
 
 export interface ContainerEvents {
-  gateIn: { status: ContainerEventStatus; date?: string };
-  loaded: { status: ContainerEventStatus; date?: string };
-  unloaded: { status: ContainerEventStatus; date?: string };
-  gateOut: { status: ContainerEventStatus; date?: string };
-  emptyReturn: { status: ContainerEventStatus; date?: string };
+  gateIn: ContainerEvent;
+  loaded: ContainerEvent;
+  unloaded: ContainerEvent;
+  gateOut: ContainerEvent;
+  emptyReturn: ContainerEvent;
+}
+
+export interface ContainerEvent {
+  status: ContainerEventStatus;
+  date?: string;
+  time?: string;
+  location?: string;
+  countryCode?: string;
+  vessel?: string;
+  reference?: string;
+  note?: string;
 }
 
 export interface MilestoneException {
