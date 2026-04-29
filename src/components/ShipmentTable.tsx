@@ -8,10 +8,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 import ShipmentDetailPopup from "@/components/ShipmentDetailPopup";
-import InvoicesDialog from "@/components/InvoicesDialog";
-import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
-import TagsDialog from "@/components/TagsDialog";
-import RemarksDialog from "@/components/RemarksDialog";
 import ColumnManagerDialog, { type ActionVisibility } from "@/components/ColumnManagerDialog";
 
 // --- helpers ---
@@ -147,6 +143,7 @@ interface TableHelpers {
   openEvents: (s: Shipment) => void;
   openTags: (s: Shipment) => void;
   openRemarks: (s: Shipment) => void;
+  openContainers: (s: Shipment) => void;
 }
 
 const createColumns = (): ColumnDef[] => [
@@ -443,13 +440,13 @@ const createColumns = (): ColumnDef[] => [
   },
   {
     id: "containers", label: "Cnt.", align: "left", minWidth: 32, defaultWidth: 34, isAction: true,
-    render: (s) => (
+    render: (s, h) => (
       <TooltipProvider delayDuration={200}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold rounded-md w-7 h-7 transition-colors cursor-default ${s.containerCount > 0 ? "text-primary hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
+            <button onClick={() => h.openContainers(s)} className={`inline-flex items-center justify-center gap-0.5 text-xs font-semibold rounded-md w-7 h-7 transition-colors ${s.containerCount > 0 ? "text-primary hover:text-primary/80 hover:bg-accent" : "text-muted-foreground/30 hover:bg-accent hover:text-muted-foreground"}`}>
               <Container className="w-3.5 h-3.5" />{s.containerCount > 0 ? <span className="text-[10px]">{s.containerCount}</span> : null}
-            </span>
+            </button>
           </TooltipTrigger>
           <TooltipContent side="top" className="text-xs">Containers</TooltipContent>
         </Tooltip>
@@ -543,10 +540,7 @@ const ShipmentTable = () => {
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [invoiceShipment, setInvoiceShipment] = useState<Shipment | null>(null);
-  const [eventsShipment, setEventsShipment] = useState<Shipment | null>(null);
-  const [tagsShipment, setTagsShipment] = useState<Shipment | null>(null);
-  const [remarksShipment, setRemarksShipment] = useState<Shipment | null>(null);
+  const [detailTab, setDetailTab] = useState<string>("general");
   const [activeStatus, setActiveStatus] = useState<string>("All");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -734,32 +728,39 @@ const ShipmentTable = () => {
     setDragOverCol(null);
   };
 
-  // Tags save
+  // Tags save (works on currently-open shipment)
   const handleTagsSave = (tags: string[]) => {
-    if (!tagsShipment) return;
-    setShipments((prev) => prev.map((s) => s.id === tagsShipment.id ? { ...s, tags } : s));
-    setTagsShipment((prev) => prev ? { ...prev, tags } : null);
+    if (!selectedShipment) return;
+    setShipments((prev) => prev.map((s) => s.id === selectedShipment.id ? { ...s, tags } : s));
+    setSelectedShipment((prev) => prev ? { ...prev, tags } : null);
   };
 
-  // Remarks add
+  // Remarks add (works on currently-open shipment)
   const handleRemarkAdd = (text: string) => {
-    if (!remarksShipment) return;
+    if (!selectedShipment) return;
     const newRemark: Remark = {
       id: `r-${Date.now()}`,
       author: "John Smith",
       text,
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }),
     };
-    setShipments((prev) => prev.map((s) => s.id === remarksShipment.id ? { ...s, remarks: [...s.remarks, newRemark] } : s));
-    setRemarksShipment((prev) => prev ? { ...prev, remarks: [...prev.remarks, newRemark] } : null);
+    setShipments((prev) => prev.map((s) => s.id === selectedShipment.id ? { ...s, remarks: [...s.remarks, newRemark] } : s));
+    setSelectedShipment((prev) => prev ? { ...prev, remarks: [...prev.remarks, newRemark] } : null);
+  };
+
+  const openPopup = (s: Shipment, tab: string) => {
+    setSelectedShipment(s);
+    setDetailTab(tab);
+    setDetailOpen(true);
   };
 
   const helpers: TableHelpers = {
-    openDetail: (s) => { setSelectedShipment(s); setDetailOpen(true); },
-    openInvoices: (s) => setInvoiceShipment(s),
-    openEvents: (s) => setEventsShipment(s),
-    openTags: (s) => setTagsShipment(s),
-    openRemarks: (s) => setRemarksShipment(s),
+    openDetail: (s) => openPopup(s, "general"),
+    openInvoices: (s) => openPopup(s, "invoices"),
+    openEvents: (s) => openPopup(s, "general"),
+    openTags: (s) => openPopup(s, "tags"),
+    openRemarks: (s) => openPopup(s, "remarks"),
+    openContainers: (s) => openPopup(s, "containers"),
   };
 
   const baseFiltered = shipments.filter((s) => {
@@ -1207,18 +1208,15 @@ const ShipmentTable = () => {
         </div>
       </div>
 
-      {/* Dialogs & Sidebar */}
-      <ShipmentDetailPopup shipment={selectedShipment} open={detailOpen} onClose={() => setDetailOpen(false)} />
-      {invoiceShipment && (
-        <InvoicesDialog invoices={invoiceShipment.invoices} houseBill={invoiceShipment.houseBill} open={!!invoiceShipment} onClose={() => setInvoiceShipment(null)} />
-      )}
-      <ShipmentEventsDialog shipment={eventsShipment} open={!!eventsShipment} onClose={() => setEventsShipment(null)} />
-      {tagsShipment && (
-        <TagsDialog tags={tagsShipment.tags} houseBill={tagsShipment.houseBill} open={!!tagsShipment} onClose={() => setTagsShipment(null)} onSave={handleTagsSave} />
-      )}
-      {remarksShipment && (
-        <RemarksDialog remarks={remarksShipment.remarks} houseBill={remarksShipment.houseBill} open={!!remarksShipment} onClose={() => setRemarksShipment(null)} onAdd={handleRemarkAdd} />
-      )}
+      {/* Unified shipment popup */}
+      <ShipmentDetailPopup
+        shipment={selectedShipment}
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        initialTab={detailTab}
+        onTagsChange={handleTagsSave}
+        onRemarkAdd={handleRemarkAdd}
+      />
       <ColumnManagerDialog
         open={columnManagerOpen}
         onClose={() => setColumnManagerOpen(false)}

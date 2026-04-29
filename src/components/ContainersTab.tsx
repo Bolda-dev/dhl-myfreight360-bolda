@@ -22,13 +22,10 @@ const ContainersTab = ({ containers, isAir = false }: Props) => {
 
   return (
     <div className="space-y-4">
-      {/* View toggle */}
-      <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          {containers.length} {isAir ? "Package" : "Container"}{containers.length > 1 ? "s" : ""}
-        </span>
-        {!isAir && (
-        <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
+      {/* View toggle (ocean only) */}
+      {!isAir && (
+        <div className="flex items-center justify-end">
+          <div className="flex items-center gap-1 bg-muted rounded-lg p-0.5">
           <button
             onClick={() => setView("table")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === "table" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
@@ -43,9 +40,9 @@ const ContainersTab = ({ containers, isAir = false }: Props) => {
             <List className="w-3.5 h-3.5" />
             Journey
           </button>
+          </div>
         </div>
-        )}
-      </div>
+      )}
 
       {isAir ? (
         <div className="border rounded-lg overflow-hidden">

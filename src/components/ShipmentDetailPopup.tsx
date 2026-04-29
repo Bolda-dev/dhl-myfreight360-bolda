@@ -1,14 +1,18 @@
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Shipment } from "@/data/mockShipments";
-import { CITY_CODES, COUNTRY_CODES } from "@/data/mockShipments";
-import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, Package, X, ArrowRight, Anchor } from "lucide-react";
+import { CITY_CODES, COUNTRY_CODES, AVAILABLE_TAGS } from "@/data/mockShipments";
+import { Check, Clock, AlertTriangle, Plane, Ship, Truck, MapPin, FileText, Tag, MessageSquare, Container, Package, X, ArrowRight, Anchor, Plus, Send, User } from "lucide-react";
 import ContainersTab from "./ContainersTab";
 
 interface Props {
   shipment: Shipment | null;
   open: boolean;
   onClose: () => void;
+  initialTab?: string;
+  onTagsChange?: (tags: string[]) => void;
+  onRemarkAdd?: (text: string) => void;
 }
 
 const modeIcon: Record<string, React.ReactNode> = {
@@ -29,7 +33,53 @@ const isDateLate = (estimated: string | null | undefined, actual: string | null 
   return new Date(actual) > new Date(estimated);
 };
 
-const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
+// ===== Shared tab UI helpers =====
+const TabHeader = ({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle?: React.ReactNode;
+  action?: React.ReactNode;
+}) => (
+  <div className="flex items-start justify-between gap-4 mb-5">
+    <div className="min-w-0">
+      <h3 className="text-sm font-semibold text-foreground leading-tight">{title}</h3>
+      {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
+    </div>
+    {action && <div className="shrink-0">{action}</div>}
+  </div>
+);
+
+const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+  <h4 className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">{children}</h4>
+);
+
+const DataField = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div className="bg-muted/30 rounded-lg p-3">
+    <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{label}</div>
+    <div className="text-[13px] font-medium text-foreground mt-1 truncate">{value}</div>
+  </div>
+);
+
+const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange, onRemarkAdd }: Props) => {
+  const [activeTab, setActiveTab] = useState<string>(initialTab || "general");
+  const exceptionsRef = useRef<HTMLDivElement | null>(null);
+  const [remarkText, setRemarkText] = useState("");
+
+  useEffect(() => {
+    if (open) setActiveTab(initialTab || "general");
+  }, [open, initialTab, shipment?.id]);
+
+  // Scroll to exceptions banner when opened from the exceptions icon
+  useEffect(() => {
+    if (open && initialTab === "general" && exceptionsRef.current) {
+      const t = setTimeout(() => exceptionsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+      return () => clearTimeout(t);
+    }
+  }, [open, initialTab, shipment?.id]);
+
   if (!shipment) return null;
 
   const s = shipment;
@@ -146,7 +196,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-[800px] w-[95vw] p-0 gap-0 overflow-hidden h-[85vh] flex flex-col">
+      <DialogContent className="max-w-[1400px] w-[97vw] p-0 gap-0 overflow-hidden h-[85vh] flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b bg-card shrink-0">
           <div className="flex items-center justify-between">
@@ -179,9 +229,11 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="general" className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6 h-auto py-0 gap-0 shrink-0">
-            {[
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="relative shrink-0 border-b">
+            <div className="overflow-x-auto">
+              <TabsList className="inline-flex w-max justify-start rounded-none bg-transparent px-6 h-auto py-0 gap-0 border-0">
+                {[
               { value: "general", label: "General", icon: null },
               {
                 value: tripTabValue,
@@ -199,11 +251,11 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
               },
               { value: "tags", label: "Tags", icon: <Tag className="w-3.5 h-3.5" />, count: s.tags.length },
               { value: "remarks", label: "Remarks", icon: <MessageSquare className="w-3.5 h-3.5" />, count: s.remarks.length },
-            ].map(tab => (
+                ].map(tab => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-xs font-medium gap-1.5"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-xs font-medium gap-1.5 whitespace-nowrap shrink-0"
               >
                 {tab.icon}
                 {tab.label}
@@ -211,20 +263,26 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                   <span className="ml-1 text-[10px] bg-muted px-1.5 py-0.5 rounded-full font-semibold">{tab.count}</span>
                 )}
               </TabsTrigger>
-            ))}
-          </TabsList>
+                ))}
+              </TabsList>
+            </div>
+            {/* Edge fades */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-background to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent" />
+          </div>
 
           <div className="overflow-y-auto flex-1">
             {/* General Tab */}
             <TabsContent value="general" className="p-6 m-0 space-y-6">
               {/* Exceptions banner */}
               {exceptions.length > 0 && (
-                <div className="space-y-2">
+                <div ref={exceptionsRef} className="space-y-3">
+                  <SectionTitle>Exceptions</SectionTitle>
                   {exceptions.map((exc, i) => (
                     <div key={i} className={`flex items-start gap-3 p-3 rounded-lg border ${exc.severity === "critical" ? "bg-destructive/5 border-destructive/20" : "bg-warning/5 border-warning/20"}`}>
                       <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${exc.severity === "critical" ? "text-destructive" : "text-warning"}`} />
                       <div className="flex-1 min-w-0">
-                        <div className={`text-sm font-semibold ${exc.severity === "critical" ? "text-destructive" : "text-warning"}`}>{exc.title}</div>
+                        <div className={`text-[13px] font-semibold ${exc.severity === "critical" ? "text-destructive" : "text-warning"}`}>{exc.title}</div>
                         <div className="text-xs text-muted-foreground mt-0.5">{exc.description}</div>
                         <div className="text-[10px] text-muted-foreground/70 mt-1">{exc.milestone} • {exc.date}</div>
                       </div>
@@ -235,7 +293,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
               {/* Milestone progress */}
               <div>
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Milestones</h3>
+                <SectionTitle>Milestones</SectionTitle>
                 <div className="flex items-center justify-between relative px-2">
                   {/* Background line */}
                   <div className="absolute left-[calc(10%+10px)] right-[calc(10%+10px)] top-[14px] h-0.5 bg-muted-foreground/15 rounded-full" />
@@ -278,8 +336,8 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
               {/* Details grid */}
               <div>
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Shipment Details</h3>
-                <div className="grid grid-cols-3 gap-4">
+                <SectionTitle>Shipment Details</SectionTitle>
+                <div className="grid grid-cols-3 gap-3">
                   {[
                     { label: "File Number", value: s.fileNumber },
                     { label: "Client Ref", value: s.clientRef },
@@ -287,20 +345,17 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                     { label: "Shipper", value: s.shipper },
                     { label: "Consignee", value: s.consignee },
                     { label: "Containers", value: s.containerCount > 0 ? String(s.containerCount) : "—" },
-                  ].map(item => (
-                    <div key={item.label} className="bg-muted/30 rounded-lg p-3">
-                      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{item.label}</div>
-                      <div className="text-sm font-medium text-foreground mt-1 truncate">{item.value}</div>
-                    </div>
-                  ))}
+                  ].map(item => <DataField key={item.label} label={item.label} value={item.value} />)}
                 </div>
               </div>
 
               {/* Departure / Arrival */}
-              <div className="grid grid-cols-2 gap-4">
+              <div>
+                <SectionTitle>Schedule</SectionTitle>
+                <div className="grid grid-cols-2 gap-3">
                 <div className="bg-muted/30 rounded-lg p-4">
                   <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Departure</div>
-                  <div className="space-y-1 text-sm">
+                  <div className="space-y-1 text-[13px]">
                     <div className="flex justify-between"><span className="text-muted-foreground">ETD</span><span className="font-medium">{formatDate(s.etd)}</span></div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">ATD</span>
@@ -310,7 +365,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                 </div>
                 <div className="bg-muted/30 rounded-lg p-4">
                   <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Arrival</div>
-                  <div className="space-y-1 text-sm">
+                  <div className="space-y-1 text-[13px]">
                     <div className="flex justify-between"><span className="text-muted-foreground">ETA</span><span className="font-medium">{formatDate(s.eta)}</span></div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">ATA</span>
@@ -318,22 +373,21 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                     </div>
                   </div>
                 </div>
+                </div>
               </div>
             </TabsContent>
 
             {/* Flights / Voyage Tab */}
             <TabsContent value={tripTabValue} className="p-6 m-0">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">Trip Itinerary</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {legs.length} {legNoun.toLowerCase()}{legs.length > 1 ? "s" : ""} from {oCode} to {dCode}
-                  </p>
-                </div>
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  {legs.length > 1 ? `${legs.length - 1} Transshipment${legs.length - 1 > 1 ? "s" : ""}` : "Direct"}
-                </span>
-              </div>
+              <TabHeader
+                title="Trip Itinerary"
+                subtitle={`${legs.length} ${legNoun.toLowerCase()}${legs.length > 1 ? "s" : ""} from ${oCode} to ${dCode}`}
+                action={
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    {legs.length > 1 ? `${legs.length - 1} Transshipment${legs.length - 1 > 1 ? "s" : ""}` : "Direct"}
+                  </span>
+                }
+              />
 
               <div className="relative">
                 {legs.map((leg, i) => {
@@ -433,6 +487,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
             {/* Events Tab */}
             <TabsContent value="events" className="p-6 m-0">
+              <TabHeader title="Events Timeline" subtitle={`${s.events.length} event${s.events.length === 1 ? "" : "s"} recorded`} />
               <div className="space-y-3">
                 {s.events.map((event, i) => (
                   <div key={i} className="flex gap-3">
@@ -443,7 +498,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                     </div>
                     <div className="flex-1 border rounded-lg p-3 bg-card">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-foreground">{event.title}</span>
+                        <span className="text-[13px] font-semibold text-foreground">{event.title}</span>
                         <span className="text-[10px] font-semibold text-muted-foreground bg-muted px-2 py-0.5 rounded">{event.type}</span>
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
@@ -459,6 +514,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
             {/* Invoices Tab */}
             <TabsContent value="invoices" className="p-6 m-0">
+              <TabHeader title="Invoices" subtitle={`${s.invoices.length} invoice${s.invoices.length === 1 ? "" : "s"}`} />
               {s.invoices.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">No invoices</div>
               ) : (
@@ -466,11 +522,11 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                   {s.invoices.map((inv, i) => (
                     <div key={i} className="flex items-center justify-between p-3 border rounded-lg bg-card">
                       <div>
-                        <div className="text-sm font-semibold text-foreground">{inv.number}</div>
+                        <div className="text-[13px] font-semibold text-foreground">{inv.number}</div>
                         <div className="text-xs text-muted-foreground">{inv.description}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-bold text-foreground">{inv.currency} {inv.amount.toLocaleString()}</div>
+                        <div className="text-[13px] font-bold text-foreground">{inv.currency} {inv.amount.toLocaleString()}</div>
                         <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${inv.status === "PAID" ? "bg-success/10 text-success" : inv.status === "OVERDUE" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"}`}>{inv.status}</span>
                       </div>
                     </div>
@@ -481,37 +537,104 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
 
             {/* Containers Tab */}
             <TabsContent value="containers" className="p-6 m-0">
+              <TabHeader
+                title={isAir ? "Packages" : "Containers"}
+                subtitle={`${s.containerCount} ${isAir ? "package" : "container"}${s.containerCount === 1 ? "" : "s"}`}
+              />
               <ContainersTab containers={s.containers} isAir={isAir} />
             </TabsContent>
 
             {/* Tags Tab */}
             <TabsContent value="tags" className="p-6 m-0">
-              {s.tags.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">No tags</div>
-              ) : (
-                <div className="flex flex-wrap gap-2">
-                  {s.tags.map((tag, i) => (
-                    <span key={i} className="px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">{tag}</span>
-                  ))}
+              <TabHeader title="Tags" subtitle={`${s.tags.length} tag${s.tags.length === 1 ? "" : "s"} applied`} />
+              <div className="space-y-5">
+                <div>
+                  <SectionTitle>Applied</SectionTitle>
+                  {s.tags.length === 0 ? (
+                    <div className="text-xs text-muted-foreground">No tags yet</div>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {s.tags.map((tag) => (
+                        <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary border border-primary/20">
+                          {tag}
+                          {onTagsChange && (
+                            <button
+                              onClick={() => onTagsChange(s.tags.filter((t) => t !== tag))}
+                              className="hover:text-destructive"
+                              aria-label={`Remove ${tag}`}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+                {onTagsChange && (
+                  <div>
+                    <SectionTitle>Available</SectionTitle>
+                    <div className="flex flex-wrap gap-1.5">
+                      {AVAILABLE_TAGS.filter((t) => !s.tags.includes(t)).map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => onTagsChange([...s.tags, tag])}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full border text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                        >
+                          <Plus className="w-3 h-3" />
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             {/* Remarks Tab */}
             <TabsContent value="remarks" className="p-6 m-0">
-              {s.remarks.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">No remarks</div>
-              ) : (
-                <div className="space-y-3">
-                  {s.remarks.map((rem, i) => (
-                    <div key={i} className="border rounded-lg p-3 bg-card">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-foreground">{rem.author}</span>
-                        <span className="text-[10px] text-muted-foreground">{rem.date}</span>
+              <TabHeader title="Remarks" subtitle={`${s.remarks.length} note${s.remarks.length === 1 ? "" : "s"}`} />
+              <div className="space-y-3 mb-4">
+                {s.remarks.length === 0 && <div className="text-xs text-muted-foreground">No remarks yet</div>}
+                {s.remarks.map((rem) => (
+                  <div key={rem.id ?? rem.date + rem.text} className="border rounded-lg p-3 bg-card">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-3 h-3 text-primary" />
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{rem.text}</p>
+                      <span className="text-[13px] font-semibold text-foreground">{rem.author}</span>
+                      <span className="text-[10px] text-muted-foreground ml-auto">{rem.date}</span>
                     </div>
-                  ))}
+                    <p className="text-xs text-foreground pl-7">{rem.text}</p>
+                  </div>
+                ))}
+              </div>
+              {onRemarkAdd && (
+                <div className="flex gap-2 border-t pt-3">
+                  <input
+                    type="text"
+                    value={remarkText}
+                    onChange={(e) => setRemarkText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && remarkText.trim()) {
+                        onRemarkAdd(remarkText.trim());
+                        setRemarkText("");
+                      }
+                    }}
+                    placeholder="Add a remark..."
+                    className="flex-1 px-3 py-1.5 text-sm border rounded bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    onClick={() => {
+                      if (!remarkText.trim()) return;
+                      onRemarkAdd(remarkText.trim());
+                      setRemarkText("");
+                    }}
+                    disabled={!remarkText.trim()}
+                    className="px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
                 </div>
               )}
             </TabsContent>
