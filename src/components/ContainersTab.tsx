@@ -1,8 +1,7 @@
 import { useState } from "react";
 import type { Container, ContainerEventStatus } from "@/data/mockShipments";
-import { Table, List, ChevronRight, Check, Clock, Package } from "lucide-react";
+import { Table, List, ChevronRight, Check, Clock, Package, Minus } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   containers: Container[];
@@ -53,7 +52,9 @@ const ContainersTab = ({ containers }: Props) => {
                   <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">No.</th>
                   <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Marks & Numbers</th>
                   <th className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Kind</th>
-                  <th className="text-center px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Status / Events</th>
+                  {EVENT_DEFS.map((def) => (
+                    <th key={def.key} className="text-left px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">{def.label}</th>
+                  ))}
                   <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Pieces</th>
                   <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Weight (kg)</th>
                   <th className="text-right px-3 py-2 font-semibold text-muted-foreground whitespace-nowrap">Chargeable (kg)</th>
@@ -68,7 +69,10 @@ const ContainersTab = ({ containers }: Props) => {
                       <div className="font-semibold text-foreground">{c.id}</div>
                     </td>
                     <td className="px-3 py-2.5 whitespace-nowrap">{c.type}</td>
-                    <td className="px-3 py-2.5"><EventsBar c={c} /></td>
+                    {EVENT_DEFS.map((def) => {
+                      const e = c.events?.[def.key];
+                      return <td key={def.key} className="px-3 py-2.5 whitespace-nowrap"><EventCell e={e} /></td>;
+                    })}
                     <td className="px-3 py-2.5 text-right font-medium">{c.pieces.toLocaleString()}</td>
                     <td className="px-3 py-2.5 text-right font-medium">{c.weightKg.toLocaleString()}</td>
                     <td className="px-3 py-2.5 text-right font-medium">{c.chargeableKg.toLocaleString()}</td>
@@ -83,7 +87,7 @@ const ContainersTab = ({ containers }: Props) => {
                   <td className="px-3 py-2"></td>
                   <td className="px-3 py-2 text-muted-foreground">{containers.length} container{containers.length > 1 ? "s" : ""}</td>
                   <td className="px-3 py-2"></td>
-                  <td className="px-3 py-2"></td>
+                  <td colSpan={EVENT_DEFS.length} className="px-3 py-2"></td>
                   <td className="px-3 py-2 text-right">{totalPieces.toLocaleString()}</td>
                   <td className="px-3 py-2 text-right">{totalWeight.toLocaleString()}</td>
                   <td className="px-3 py-2 text-right">{totalChargeable.toLocaleString()}</td>
@@ -117,11 +121,8 @@ const ContainerJourneyCard = ({ container: c, index }: { container: Container; i
           <Package className="w-4 h-4 text-primary" />
           <span className="text-sm font-semibold text-foreground flex-1">{c.id}</span>
           <span className="text-[11px] font-bold px-2.5 py-1 rounded bg-primary/10 text-primary">{c.type}</span>
+          <span className="text-xs text-muted-foreground">{c.pieces.toLocaleString()} pcs</span>
           <span className="text-xs text-muted-foreground">{c.weightKg.toLocaleString()} kg</span>
-          <span className="text-xs text-muted-foreground">{c.volumeCbm} cbm</span>
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${c.storageStatus === "Okay" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-            {c.storageStatus}
-          </span>
         </button>
       </CollapsibleTrigger>
       <CollapsibleContent>
