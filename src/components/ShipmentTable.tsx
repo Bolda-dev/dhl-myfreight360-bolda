@@ -825,7 +825,6 @@ const ShipmentTable = () => {
                           </div>
                         </div>
                       )}
-                      )}
                       {!isAction && (
                         <div
                           onMouseDown={(e) => handleResizeStart(e, col.id)}
