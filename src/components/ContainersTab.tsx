@@ -277,15 +277,17 @@ const EventCell = ({ e }: { e?: ContainerEvent }) => {
             </div>
             <div className="leading-tight">
               {e.countryCode && (
-                <div className="text-[9px] font-semibold tracking-wider text-muted-foreground uppercase">{e.countryCode}</div>
+                <div className={`text-[11px] font-semibold leading-tight ${isDone ? "text-foreground" : "text-primary"}`}>
+                  {e.countryCode}
+                </div>
               )}
-              <div className={`text-[11px] font-semibold ${isDone ? "text-foreground" : "text-primary"}`}>
+              <div className="text-[10px] font-normal text-muted-foreground leading-tight">
                 {e.date ?? ""}{e.time ? ` · ${e.time}` : ""}
               </div>
             </div>
           </div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="text-[11px] max-w-[260px]">
+        <TooltipContent side="top" className="text-[11px] max-w-[280px] whitespace-normal break-words">
           <div className="font-semibold">{isDone ? "Completed" : "In progress"}</div>
           {e.location && <div className="text-muted-foreground">{e.location}{e.countryCode ? `, ${e.countryCode}` : ""}</div>}
           {(e.date || e.time) && <div className="text-muted-foreground">{[e.date, e.time].filter(Boolean).join(" · ")}</div>}
