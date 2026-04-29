@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark, type MilestoneException } from "@/data/mockShipments";
-import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container, Clock } from "lucide-react";
+import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container, Clock, ArrowUp, ArrowDown, ArrowUpDown, Filter } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import ShipmentDetailPopup from "@/components/ShipmentDetailPopup";
 import InvoicesDialog from "@/components/InvoicesDialog";
@@ -517,6 +517,21 @@ const ShipmentTable = () => {
   });
   const [mergeOriginDest, setMergeOriginDest] = useState(true);
 
+  // Sort & filter state per column (UI indication)
+  const [sortState, setSortState] = useState<{ colId: string; dir: "asc" | "desc" } | null>(null);
+  const [filteredCols, setFilteredCols] = useState<Record<string, boolean>>({});
+
+  const toggleSort = (colId: string) => {
+    setSortState((prev) => {
+      if (!prev || prev.colId !== colId) return { colId, dir: "asc" };
+      if (prev.dir === "asc") return { colId, dir: "desc" };
+      return null;
+    });
+  };
+  const toggleFilter = (colId: string) => {
+    setFilteredCols((prev) => ({ ...prev, [colId]: !prev[colId] }));
+  };
+
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
     const w: Record<string, number> = {};
@@ -756,7 +771,59 @@ const ShipmentTable = () => {
                           </Tooltip>
                         </TooltipProvider>
                       ) : (
-                        <span className="cursor-grab active:cursor-grabbing text-xs whitespace-pre-line leading-tight">{col.label}</span>
+                        <div className="flex items-center gap-1">
+                          <span className="cursor-grab active:cursor-grabbing text-xs whitespace-pre-line leading-tight">{col.label}</span>
+                          <div className="flex items-center gap-0.5 ml-auto">
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); toggleSort(col.id); }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onDragStart={(e) => e.preventDefault()}
+                                    className={`h-5 w-5 rounded flex items-center justify-center transition-opacity hover:bg-accent ${
+                                      sortState?.colId === col.id
+                                        ? "opacity-100 text-primary"
+                                        : "opacity-0 group-hover:opacity-60 hover:!opacity-100 text-muted-foreground"
+                                    }`}
+                                  >
+                                    {sortState?.colId === col.id ? (
+                                      sortState.dir === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                                    ) : (
+                                      <ArrowUpDown className="w-3 h-3" />
+                                    )}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  {sortState?.colId === col.id
+                                    ? (sortState.dir === "asc" ? "Sorted ascending" : "Sorted descending")
+                                    : "Sort"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); toggleFilter(col.id); }}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    onDragStart={(e) => e.preventDefault()}
+                                    className={`h-5 w-5 rounded flex items-center justify-center transition-opacity hover:bg-accent ${
+                                      filteredCols[col.id]
+                                        ? "opacity-100 text-primary"
+                                        : "opacity-0 group-hover:opacity-60 hover:!opacity-100 text-muted-foreground"
+                                    }`}
+                                  >
+                                    <Filter className={`w-3 h-3 ${filteredCols[col.id] ? "fill-current" : ""}`} />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  {filteredCols[col.id] ? "Filter active" : "Filter"}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </div>
                       )}
                       {!isAction && (
                         <div
