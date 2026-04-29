@@ -771,7 +771,9 @@ const ShipmentTable = () => {
       s.origin.toLowerCase().includes(q) ||
       s.destination.toLowerCase().includes(q) ||
       (CITY_CODES[s.origin] || "").toLowerCase().includes(q) ||
-      (CITY_CODES[s.destination] || "").toLowerCase().includes(q);
+      (CITY_CODES[s.destination] || "").toLowerCase().includes(q) ||
+      (getCarrier(s)?.code.toLowerCase().includes(q) ?? false) ||
+      (getCarrier(s)?.name.toLowerCase().includes(q) ?? false);
     if (!matchesStatus || !matchesSearch) return false;
     // Per-column filters
     for (const [colId, valueSet] of Object.entries(columnFilters)) {
