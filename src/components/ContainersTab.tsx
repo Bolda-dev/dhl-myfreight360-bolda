@@ -172,40 +172,24 @@ const EVENT_DEFS: { key: keyof NonNullable<Container["events"]>; label: string }
   { key: "emptyReturn", label: "EMPTY RETURN" },
 ];
 
-const EventsBar = ({ c }: { c: Container }) => {
-  const ev = c.events;
-  if (!ev) return <span className="text-muted-foreground text-[11px]">—</span>;
-  return (
-    <TooltipProvider delayDuration={100}>
-      <div className="flex items-center gap-0.5">
-        {EVENT_DEFS.map((def, i) => {
-          const e = ev[def.key];
-          const color =
-            e.status === "completed"
-              ? "bg-success text-white border-success"
-              : e.status === "current"
-              ? "bg-primary text-white border-primary"
-              : "bg-muted text-muted-foreground border-border";
-          return (
-            <div key={def.key} className="flex items-center">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${color}`}>
-                    {e.status === "completed" ? <Check className="w-2.5 h-2.5" /> : <span className="text-[9px] font-bold">{i + 1}</span>}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="text-[11px]">
-                  <div className="font-semibold">{def.label}</div>
-                  <div className="text-muted-foreground">{e.date ?? "Pending"}</div>
-                </TooltipContent>
-              </Tooltip>
-              {i < EVENT_DEFS.length - 1 && (
-                <div className={`w-3 h-0.5 ${e.status === "completed" ? "bg-success" : "bg-border"}`} />
-              )}
-            </div>
-          );
-        })}
+const EventCell = ({ e }: { e?: { status: ContainerEventStatus; date?: string } }) => {
+  if (!e || e.status === "pending") {
+    return (
+      <div className="flex items-center gap-1.5 text-muted-foreground/60">
+        <Minus className="w-3 h-3" />
+        <span className="text-[11px]">Pending</span>
       </div>
-    </TooltipProvider>
+    );
+  }
+  const isDone = e.status === "completed";
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${isDone ? "bg-success text-white" : "bg-primary text-white"}`}>
+        {isDone ? <Check className="w-2 h-2" /> : <Clock className="w-2 h-2" />}
+      </div>
+      <span className={`text-[11px] font-medium ${isDone ? "text-foreground" : "text-primary"}`}>
+        {e.date ?? (isDone ? "Done" : "In progress")}
+      </span>
+    </div>
   );
 };
