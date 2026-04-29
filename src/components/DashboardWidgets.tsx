@@ -683,17 +683,17 @@ const Top10Consignees = () => {
         <table className="w-full text-[12px] border-separate border-spacing-0">
           <thead>
             <tr className="text-left bg-muted/40">
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-8 border-b">#</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase border-b">Consignee</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Docs</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Air</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Ocean</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Road</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Origins</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Dest.</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Exc.</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">On-time %</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Share</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-8 border-b whitespace-nowrap">#</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase border-b whitespace-nowrap">Consignee</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">Docs</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">Air</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">Ocean</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">Road</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">Origins</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">Dest.</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">Exc.</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">On-time %</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b whitespace-nowrap">Share</th>
             </tr>
           </thead>
           <tbody>
