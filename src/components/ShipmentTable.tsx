@@ -1,9 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { mockShipments, CITY_CODES, COUNTRY_CODES, type Shipment, type Remark, type MilestoneException } from "@/data/mockShipments";
-import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container, Clock, ArrowUp, ArrowDown, ArrowUpDown, Filter } from "lucide-react";
+import { Check, AlertTriangle, MessageSquare, Tag, FileText, Plane, Ship, Truck, Search, RefreshCw, Download, X, Columns3, CircleCheck, Circle, Container, Clock, ArrowUp, ArrowDown, ArrowUpDown, Filter, CalendarIcon } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 import ShipmentDetailPopup from "@/components/ShipmentDetailPopup";
 import InvoicesDialog from "@/components/InvoicesDialog";
 import ShipmentEventsDialog from "@/components/ShipmentEventsDialog";
@@ -526,6 +529,10 @@ const ShipmentTable = () => {
   const [filterPopoverCol, setFilterPopoverCol] = useState<string | null>(null);
   const [filterSearch, setFilterSearch] = useState("");
 
+  // Date filters per date-column: which sub-field (estimated/actual) and selected range
+  type DateFilter = { field: "estimated" | "actual"; range: DateRange | undefined };
+  const [dateFilters, setDateFilters] = useState<Record<string, DateFilter>>({});
+
   const toggleSort = (colId: string) => {
     setSortState((prev) => {
       if (!prev || prev.colId !== colId) return { colId, dir: "asc" };
@@ -534,6 +541,10 @@ const ShipmentTable = () => {
     });
   };
   const isColumnFiltered = (colId: string) => {
+    if (isDateColumn(colId)) {
+      const f = dateFilters[colId];
+      return !!f && !!f.range && (!!f.range.from || !!f.range.to);
+    }
     const set = columnFilters[colId];
     return !!set && set.size > 0;
   };
@@ -571,6 +582,13 @@ const ShipmentTable = () => {
   };
 
   const isDateColumn = (colId: string) => colId === "departure" || colId === "arrival";
+
+  // Sub-field accessor: returns the raw ISO date for the selected sub-field of a date column
+  const getDateFieldValue = (s: Shipment, colId: string, field: "estimated" | "actual"): string | null | undefined => {
+    if (colId === "departure") return field === "estimated" ? s.etd : s.atd;
+    if (colId === "arrival") return field === "estimated" ? s.eta : s.ata;
+    return null;
+  };
 
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
@@ -717,6 +735,17 @@ const ShipmentTable = () => {
       if (!valueSet || valueSet.size === 0) continue;
       const v = getColumnValue(s, colId);
       if (!valueSet.has(v)) return false;
+    }
+    // Date-column range filters
+    for (const [colId, df] of Object.entries(dateFilters)) {
+      if (!df || !df.range) continue;
+      const { from, to } = df.range;
+      if (!from && !to) continue;
+      const raw = getDateFieldValue(s, colId, df.field);
+      if (!raw) return false;
+      const t = new Date(raw).getTime();
+      if (from && t < new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime()) return false;
+      if (to && t > new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59).getTime()) return false;
     }
     return true;
   });
@@ -904,10 +933,92 @@ const ShipmentTable = () => {
                               <PopoverContent
                                 align="start"
                                 sideOffset={6}
-                                className="w-56 p-0"
+                                className={isDateColumn(col.id) ? "w-auto p-0" : "w-56 p-0"}
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                {(() => {
+                                {isDateColumn(col.id) ? (() => {
+                                  const df = dateFilters[col.id] || { field: "estimated" as const, range: undefined };
+                                  const setField = (field: "estimated" | "actual") => {
+                                    setDateFilters((prev) => ({ ...prev, [col.id]: { ...(prev[col.id] || { range: undefined }), field } }));
+                                  };
+                                  const setRange = (range: DateRange | undefined) => {
+                                    setDateFilters((prev) => {
+                                      const cur = prev[col.id] || { field: "estimated" as const, range: undefined };
+                                      const next = { ...prev, [col.id]: { ...cur, range } };
+                                      return next;
+                                    });
+                                  };
+                                  const clearDate = () => {
+                                    setDateFilters((prev) => {
+                                      const next = { ...prev };
+                                      delete next[col.id];
+                                      return next;
+                                    });
+                                  };
+                                  const isDeparture = col.id === "departure";
+                                  const estLabel = isDeparture ? "ETD" : "ETA";
+                                  const actLabel = isDeparture ? "ATD" : "ATA";
+                                  const fmt = (d?: Date) =>
+                                    d ? d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+                                  return (
+                                    <div className="flex flex-col">
+                                      <div className="p-2 border-b">
+                                        <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">
+                                          Filter by
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-1">
+                                          {[
+                                            { id: "estimated" as const, label: estLabel, sub: "Estimated" },
+                                            { id: "actual" as const, label: actLabel, sub: "Actual" },
+                                          ].map((opt) => (
+                                            <button
+                                              key={opt.id}
+                                              onClick={() => setField(opt.id)}
+                                              className={cn(
+                                                "flex flex-col items-start px-2 py-1.5 rounded text-xs border transition-colors",
+                                                df.field === opt.id
+                                                  ? "bg-primary/10 border-primary text-foreground"
+                                                  : "border-border text-muted-foreground hover:bg-accent"
+                                              )}
+                                            >
+                                              <span className="font-semibold">{opt.label}</span>
+                                              <span className="text-[10px] text-muted-foreground">{opt.sub}</span>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="px-2 pt-2 pb-1 border-b flex items-center gap-2 text-[11px]">
+                                        <CalendarIcon className="w-3 h-3 text-muted-foreground" />
+                                        <span className="text-muted-foreground">{fmt(df.range?.from)}</span>
+                                        <span className="text-muted-foreground">→</span>
+                                        <span className="text-muted-foreground">{fmt(df.range?.to)}</span>
+                                      </div>
+                                      <Calendar
+                                        mode="range"
+                                        selected={df.range}
+                                        onSelect={setRange}
+                                        numberOfMonths={2}
+                                        initialFocus
+                                        className={cn("p-3 pointer-events-auto")}
+                                      />
+                                      <div className="flex justify-between items-center p-2 border-t">
+                                        <button
+                                          onClick={clearDate}
+                                          disabled={!isColumnFiltered(col.id)}
+                                          className="text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed"
+                                        >
+                                          Clear filter
+                                        </button>
+                                        <button
+                                          onClick={() => setFilterPopoverCol(null)}
+                                          className="text-[11px] px-2 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90"
+                                        >
+                                          Done
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })() : (() => {
                                   const values = getUniqueValuesForColumn(col.id);
                                   const selected = columnFilters[col.id] || new Set<string>();
                                   const filtered = filterSearch
