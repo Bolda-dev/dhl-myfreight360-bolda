@@ -1,6 +1,7 @@
 import brandLogo from "@/assets/brand-logo.svg";
 import { Settings, Bell, User, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Popover,
   PopoverContent,
@@ -13,11 +14,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-const mainNavItems = [
-  { label: "Dashboards", submenu: ["Overview", "Analytics", "Reports"] },
-  { label: "Modules", submenu: ["Shipments", "Warehousing", "Customs"], active: true, activeItem: "Shipments" },
-];
-
 const iconNavItems = [
   { label: "Administration", icon: Settings, submenu: ["Users", "Roles", "Settings"] },
   { label: "Notifications", icon: Bell, submenu: ["Alerts", "Messages", "Logs"] },
@@ -25,6 +21,11 @@ const iconNavItems = [
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isDashboard = location.pathname === "/dashboard";
+  const isShipments = location.pathname === "/" || location.pathname.startsWith("/shipments");
 
   return (
     <header className="h-11 bg-navbar border-b border-navbar-border flex items-center px-4 gap-1 shrink-0 z-20">
@@ -35,43 +36,54 @@ const Navbar = () => {
 
       {/* Main nav - text only */}
       <nav className="flex items-center gap-0.5 flex-1">
-        {mainNavItems.map((item) => (
-          <Popover
-            key={item.label}
-            open={openMenu === item.label}
-            onOpenChange={(v) => setOpenMenu(v ? item.label : null)}
-          >
-            <PopoverTrigger asChild>
+        <button
+          onClick={() => navigate("/dashboard")}
+          className={`relative h-7 px-2.5 rounded flex items-center gap-1 text-xs font-medium transition-colors ${
+            isDashboard
+              ? "text-foreground after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-[9px] after:h-[2px] after:bg-primary after:rounded-full"
+              : "text-muted-foreground hover:bg-accent hover:text-foreground"
+          }`}
+        >
+          Dashboard
+        </button>
+
+        <Popover
+          open={openMenu === "Modules"}
+          onOpenChange={(v) => setOpenMenu(v ? "Modules" : null)}
+        >
+          <PopoverTrigger asChild>
+            <button
+              className={`relative h-7 px-2.5 rounded flex items-center gap-1 text-xs font-medium transition-colors ${
+                openMenu === "Modules"
+                  ? "bg-accent text-foreground"
+                  : isShipments
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+              } ${isShipments ? "after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-[9px] after:h-[2px] after:bg-primary after:rounded-full" : ""}`}
+            >
+              Modules
+              <ChevronDown className="w-3 h-3 opacity-50" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-44 p-1" sideOffset={4}>
+            {["Shipments", "Warehousing", "Customs"].map((sub) => (
               <button
-                className={`relative h-7 px-2.5 rounded flex items-center gap-1 text-xs font-medium transition-colors ${
-                  openMenu === item.label
-                    ? "bg-accent text-foreground"
-                    : item.active
-                      ? "text-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                } ${item.active ? "after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-[9px] after:h-[2px] after:bg-primary after:rounded-full" : ""}`}
+                key={sub}
+                className={`w-full text-left px-2.5 py-1.5 text-xs rounded hover:bg-accent transition-colors ${
+                  sub === "Shipments" && isShipments
+                    ? "bg-accent text-foreground font-medium"
+                    : "text-foreground"
+                }`}
+                onClick={() => {
+                  setOpenMenu(null);
+                  if (sub === "Shipments") navigate("/");
+                }}
               >
-                {item.label}
-                <ChevronDown className="w-3 h-3 opacity-50" />
+                {sub}
               </button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-44 p-1" sideOffset={4}>
-              {item.submenu.map((sub) => (
-                <button
-                  key={sub}
-                  className={`w-full text-left px-2.5 py-1.5 text-xs rounded hover:bg-accent transition-colors ${
-                    item.activeItem === sub
-                      ? "bg-accent text-foreground font-medium"
-                      : "text-foreground"
-                  }`}
-                  onClick={() => setOpenMenu(null)}
-                >
-                  {sub}
-                </button>
-              ))}
-            </PopoverContent>
-          </Popover>
-        ))}
+            ))}
+          </PopoverContent>
+        </Popover>
       </nav>
 
       {/* Right side: icon nav + user */}
