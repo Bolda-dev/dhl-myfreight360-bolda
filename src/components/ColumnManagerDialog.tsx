@@ -208,7 +208,7 @@ const ColumnManagerDialog = ({
   const handleDropOnHidden = (e: React.DragEvent) => {
     e.preventDefault();
     if (!draggedItem) return;
-    moveToHidden(draggedItem);
+    moveToHidden([draggedItem]);
     setDraggedItem(null);
     setDropIndex(null);
   };
