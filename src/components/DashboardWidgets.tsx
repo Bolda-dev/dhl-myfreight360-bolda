@@ -55,7 +55,7 @@ const WidgetCard = ({
   children: React.ReactNode;
 }) => (
   <div
-    className={`group relative bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col ${className}`}
+    className={`group relative bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden ${className}`}
   >
     <div className="flex items-start justify-between px-4 pt-3.5 pb-2">
       <div className="min-w-0">
@@ -99,13 +99,25 @@ const TrendPill = ({ value, positive = true }: { value: number; positive?: boole
 };
 
 // Tiny custom recharts tooltip
-const ChartTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name?: string; value?: number; payload?: { name: string; value: number } }> }) => {
+const ChartTooltip = ({
+  active,
+  payload,
+  unit = "docs",
+}: {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: number; payload?: { name: string; value: number } }>;
+  unit?: string;
+}) => {
   if (!active || !payload?.length) return null;
-  const p = payload[0].payload as { name: string; value: number };
+  const p = payload[0].payload as { name?: string; value?: number; v?: number; i?: number };
+  const name = p.name ?? (typeof p.i === "number" ? `Week ${p.i + 1}` : "");
+  const value = p.value ?? p.v ?? 0;
   return (
     <div className="rounded-md border bg-popover px-2 py-1 shadow-md text-[11px]">
-      <div className="font-medium text-popover-foreground">{p.name}</div>
-      <div className="text-muted-foreground tabular-nums">{p.value} docs</div>
+      {name && <div className="font-medium text-popover-foreground">{name}</div>}
+      <div className="text-muted-foreground tabular-nums">
+        {Math.round(value as number)} {unit}
+      </div>
     </div>
   );
 };
@@ -140,14 +152,6 @@ const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minima
     >
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <defs>
-            {PIE_PALETTE.map((c, i) => (
-              <linearGradient key={i} id={`donut-${i}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={c} stopOpacity={0.95} />
-                <stop offset="100%" stopColor={c} stopOpacity={0.7} />
-              </linearGradient>
-            ))}
-          </defs>
           <Pie
             data={data}
             dataKey="value"
@@ -162,7 +166,7 @@ const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minima
             isAnimationActive={false}
           >
             {data.map((_, i) => (
-              <Cell key={i} fill={`url(#donut-${i % PIE_PALETTE.length})`} />
+              <Cell key={i} fill={PIE_PALETTE[i % PIE_PALETTE.length]} />
             ))}
           </Pie>
           <ReTooltip
@@ -303,12 +307,6 @@ const LoadGauge = () => {
               endAngle={-30}
               data={data}
             >
-              <defs>
-                <linearGradient id="gauge-fill" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor={gaugeColor} stopOpacity={0.7} />
-                  <stop offset="100%" stopColor={gaugeColor} stopOpacity={1} />
-                </linearGradient>
-              </defs>
               <PolarAngleAxis
                 type="number"
                 domain={[0, 100]}
@@ -319,7 +317,7 @@ const LoadGauge = () => {
                 background={{ fill: "hsl(var(--muted))" }}
                 dataKey="value"
                 cornerRadius={10}
-                fill="url(#gauge-fill)"
+                fill={gaugeColor}
               />
             </RadialBarChart>
           </ResponsiveContainer>
@@ -418,7 +416,7 @@ const TransportModes = () => {
           return (
             <div
               key={key}
-              className="relative rounded-lg border bg-gradient-to-br from-muted/30 to-transparent p-3 hover:border-foreground/20 transition-colors"
+              className="relative rounded-lg border bg-muted/30 p-3 hover:border-foreground/20 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div
@@ -447,19 +445,20 @@ const TransportModes = () => {
                 <div className="w-20 h-10 shrink-0 hidden sm:block">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={trendData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id={`spark-${key}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={meta.color} stopOpacity={0.4} />
-                          <stop offset="100%" stopColor={meta.color} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
                       <Area
                         type="monotone"
                         dataKey="v"
                         stroke={meta.color}
                         strokeWidth={1.5}
-                        fill={`url(#spark-${key})`}
+                        fill={meta.color}
+                        fillOpacity={0.18}
                         isAnimationActive={false}
+                      />
+                      <ReTooltip
+                        content={<ChartTooltip unit={meta.label.toLowerCase()} />}
+                        wrapperStyle={{ zIndex: 60, outline: "none" }}
+                        allowEscapeViewBox={{ x: true, y: true }}
+                        cursor={{ stroke: meta.color, strokeOpacity: 0.3, strokeWidth: 1 }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -584,19 +583,20 @@ const ModeKPI = ({
         <div className="mt-3 h-20 -mx-1">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={trend} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`kpi-spark-${mode}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={meta.color} stopOpacity={0.5} />
-                  <stop offset="100%" stopColor={meta.color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
               <Area
                 type="monotone"
                 dataKey="v"
                 stroke={meta.color}
                 strokeWidth={2}
-                fill={`url(#kpi-spark-${mode})`}
+                fill={meta.color}
+                fillOpacity={0.15}
                 isAnimationActive={false}
+              />
+              <ReTooltip
+                content={<ChartTooltip unit={`${meta.label.toLowerCase()} shipments`} />}
+                wrapperStyle={{ zIndex: 60, outline: "none" }}
+                allowEscapeViewBox={{ x: true, y: true }}
+                cursor={{ stroke: meta.color, strokeOpacity: 0.4, strokeWidth: 1 }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -637,9 +637,13 @@ const Top10Consignees = () => {
       air: number;
       ocean: number;
       rail: number;
+      origins: Set<string>;
+      destinations: Set<string>;
+      exceptions: number;
+      onTime: number;
     };
     const map: Record<string, Row> = {};
-    mockShipments.forEach((s) => {
+    mockShipments.forEach((s: any) => {
       const r =
         map[s.consignee] ||
         (map[s.consignee] = {
@@ -648,65 +652,69 @@ const Top10Consignees = () => {
           air: 0,
           ocean: 0,
           rail: 0,
+          origins: new Set<string>(),
+          destinations: new Set<string>(),
+          exceptions: 0,
+          onTime: 0,
         });
       r.docs += 1;
       if (s.transportMode === "Air") r.air += 1;
       else if (s.transportMode === "Ocean") r.ocean += 1;
       else r.rail += 1;
+      if (s.origin) r.origins.add(s.origin);
+      if (s.destination) r.destinations.add(s.destination);
+      if (s.exceptions && s.exceptions.length) r.exceptions += 1;
+      else r.onTime += 1;
     });
     return Object.values(map)
       .sort((a, b) => b.docs - a.docs)
       .slice(0, 10);
   }, []);
 
-  const max = rows[0]?.docs ?? 1;
+  const totalDocs = rows.reduce((s, r) => s + r.docs, 0) || 1;
 
   return (
     <WidgetCard
       title="Top 10 Consignees"
-      subtitle="Ranked by total documents"
+      subtitle="Ranked by total documents — full breakdown"
       className="lg:col-span-2"
     >
       <div className="overflow-auto -mx-1">
         <table className="w-full text-[12px] border-separate border-spacing-0">
           <thead>
-            <tr className="text-left">
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-8">#</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">Consignee</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Plane className="inline w-3 h-3" /></th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Ship className="inline w-3 h-3" /></th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Truck className="inline w-3 h-3" /></th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right">Docs</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-[110px]">Share</th>
+            <tr className="text-left bg-muted/40">
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-8 border-b">#</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase border-b">Consignee</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Docs</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Air</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Ocean</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Road</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Origins</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Dest.</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Exc.</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">On-time %</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Share</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => {
-              const pct = (r.docs / max) * 100;
+              const share = (r.docs / totalDocs) * 100;
+              const onTimePct = r.docs > 0 ? (r.onTime / r.docs) * 100 : 0;
               return (
-                <tr key={r.name} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-2 py-1.5 border-t text-[11px] font-semibold text-muted-foreground tabular-nums">{i + 1}</td>
-                  <td className="px-2 py-1.5 border-t">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className="w-1.5 h-5 rounded-full shrink-0"
-                        style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
-                      />
-                      <span className="truncate font-medium text-foreground" title={r.name}>{r.name}</span>
-                    </div>
+                <tr key={r.name} className="hover:bg-muted/40 transition-colors">
+                  <td className="px-2 py-1.5 border-b text-[11px] font-semibold text-muted-foreground tabular-nums">{i + 1}</td>
+                  <td className="px-2 py-1.5 border-b">
+                    <span className="truncate font-medium text-foreground block max-w-[240px]" title={r.name}>{r.name}</span>
                   </td>
-                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.air || "—"}</td>
-                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.ocean || "—"}</td>
-                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.rail || "—"}</td>
-                  <td className="px-2 py-1.5 border-t text-right tabular-nums font-semibold text-foreground">{r.docs}</td>
-                  <td className="px-2 py-1.5 border-t">
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, background: PIE_PALETTE[i % PIE_PALETTE.length] }}
-                      />
-                    </div>
-                  </td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums font-semibold text-foreground">{r.docs}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.air || "—"}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.ocean || "—"}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.rail || "—"}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.origins.size}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.destinations.size}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.exceptions || "—"}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-foreground">{onTimePct.toFixed(0)}%</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{share.toFixed(1)}%</td>
                 </tr>
               );
             })}
