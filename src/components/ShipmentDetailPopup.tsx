@@ -196,7 +196,7 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-[800px] w-[95vw] p-0 gap-0 overflow-hidden h-[85vh] flex flex-col">
+      <DialogContent className="max-w-[1400px] w-[97vw] p-0 gap-0 overflow-hidden h-[85vh] flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b bg-card shrink-0">
           <div className="flex items-center justify-between">
@@ -229,9 +229,11 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="general" className="flex flex-col flex-1 min-h-0 overflow-hidden">
-          <TabsList className="w-full justify-start rounded-none border-b bg-transparent px-6 h-auto py-0 gap-0 shrink-0">
-            {[
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+          <div className="relative shrink-0 border-b">
+            <div className="overflow-x-auto">
+              <TabsList className="inline-flex w-max justify-start rounded-none bg-transparent px-6 h-auto py-0 gap-0 border-0">
+                {[
               { value: "general", label: "General", icon: null },
               {
                 value: tripTabValue,
@@ -249,11 +251,11 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
               },
               { value: "tags", label: "Tags", icon: <Tag className="w-3.5 h-3.5" />, count: s.tags.length },
               { value: "remarks", label: "Remarks", icon: <MessageSquare className="w-3.5 h-3.5" />, count: s.remarks.length },
-            ].map(tab => (
+                ].map(tab => (
               <TabsTrigger
                 key={tab.value}
                 value={tab.value}
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-xs font-medium gap-1.5"
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 py-2.5 text-xs font-medium gap-1.5 whitespace-nowrap shrink-0"
               >
                 {tab.icon}
                 {tab.label}
@@ -261,8 +263,13 @@ const ShipmentDetailPopup = ({ shipment, open, onClose, initialTab, onTagsChange
                   <span className="ml-1 text-[10px] bg-muted px-1.5 py-0.5 rounded-full font-semibold">{tab.count}</span>
                 )}
               </TabsTrigger>
-            ))}
-          </TabsList>
+                ))}
+              </TabsList>
+            </div>
+            {/* Edge fades */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-background to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-background to-transparent" />
+          </div>
 
           <div className="overflow-y-auto flex-1">
             {/* General Tab */}
