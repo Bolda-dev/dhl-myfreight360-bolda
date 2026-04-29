@@ -55,7 +55,7 @@ const WidgetCard = ({
   children: React.ReactNode;
 }) => (
   <div
-    className={`group relative bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden ${className}`}
+    className={`group relative bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col ${className}`}
   >
     <div className="flex items-start justify-between px-4 pt-3.5 pb-2">
       <div className="min-w-0">
@@ -114,7 +114,7 @@ const ChartTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{
 //  Widget 1 — Documents by Consignee (donut + ranked legend)
 // =============================================================
 
-const DocumentsByConsignee = () => {
+const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minimal" }) => {
   const { data, total, top } = useMemo(() => {
     const counts: Record<string, number> = {};
     mockShipments.forEach((s) => {
@@ -132,6 +132,74 @@ const DocumentsByConsignee = () => {
 
   const topPct = top ? ((top.value / total) * 100).toFixed(1) : "0";
 
+  // Inline donut shared between variants
+  const Donut = ({ size }: { size: number }) => (
+    <div
+      className="relative mx-auto"
+      style={{ width: size, height: size }}
+    >
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <defs>
+            {PIE_PALETTE.map((c, i) => (
+              <linearGradient key={i} id={`donut-${i}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={c} stopOpacity={0.95} />
+                <stop offset="100%" stopColor={c} stopOpacity={0.7} />
+              </linearGradient>
+            ))}
+          </defs>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            innerRadius="68%"
+            outerRadius="96%"
+            paddingAngle={1.5}
+            stroke="hsl(var(--card))"
+            strokeWidth={2}
+            isAnimationActive={false}
+          >
+            {data.map((_, i) => (
+              <Cell key={i} fill={`url(#donut-${i % PIE_PALETTE.length})`} />
+            ))}
+          </Pie>
+          <ReTooltip
+            content={<ChartTooltip />}
+            wrapperStyle={{ zIndex: 60, outline: "none" }}
+            allowEscapeViewBox={{ x: true, y: true }}
+            cursor={false}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
+          Total
+        </div>
+        <div className="text-3xl font-bold text-foreground tabular-nums leading-tight">
+          {total.toLocaleString()}
+        </div>
+        <div className="text-[10px] text-muted-foreground mt-0.5">
+          {data.length} consignees
+        </div>
+      </div>
+    </div>
+  );
+
+  if (variant === "minimal") {
+    return (
+      <WidgetCard
+        title="Documents by Consignee"
+        subtitle={`Top: ${top?.name ?? "—"}`}
+      >
+        <div className="h-full flex items-center justify-center py-2">
+          <Donut size={220} />
+        </div>
+      </WidgetCard>
+    );
+  }
+
   return (
     <WidgetCard
       title="Documents by Consignee"
@@ -140,50 +208,8 @@ const DocumentsByConsignee = () => {
     >
       <div className="flex flex-col lg:flex-row items-stretch gap-4 h-full">
         {/* Donut */}
-        <div className="relative shrink-0 w-full lg:w-[210px] h-[210px] mx-auto">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <defs>
-                {PIE_PALETTE.map((c, i) => (
-                  <linearGradient key={i} id={`donut-${i}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={c} stopOpacity={0.95} />
-                    <stop offset="100%" stopColor={c} stopOpacity={0.7} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius="68%"
-                outerRadius="96%"
-                paddingAngle={1.5}
-                stroke="hsl(var(--card))"
-                strokeWidth={2}
-              >
-                {data.map((_, i) => (
-                  <Cell
-                    key={i}
-                    fill={`url(#donut-${i % PIE_PALETTE.length})`}
-                  />
-                ))}
-              </Pie>
-              <ReTooltip content={<ChartTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
-              Total
-            </div>
-            <div className="text-3xl font-bold text-foreground tabular-nums leading-tight">
-              {total.toLocaleString()}
-            </div>
-            <div className="text-[10px] text-muted-foreground mt-0.5">
-              {data.length} consignees
-            </div>
-          </div>
+        <div className="shrink-0 w-full lg:w-[210px] flex items-center justify-center">
+          <Donut size={210} />
         </div>
 
         {/* Ranked legend */}
@@ -459,59 +485,117 @@ const TransportModes = () => {
 //  Widget 4 — Air Shipments (KPI hero w/ trend)
 // =============================================================
 
-const AirShipmentsKPI = () => {
+// =============================================================
+//  KPI per Transport Mode (full + compact variants)
+// =============================================================
+
+type KPIVariant = "full" | "compact";
+
+const ModeKPI = ({
+  mode,
+  trendPct = 12.3,
+  trendUp = true,
+  variant = "full",
+}: {
+  mode: keyof typeof modeMeta;
+  trendPct?: number;
+  trendUp?: boolean;
+  variant?: KPIVariant;
+}) => {
+  const meta = modeMeta[mode];
+  const Icon = meta.icon;
+
   const { value, total, pct } = useMemo(() => {
-    const value = mockShipments.filter((s) => s.transportMode === "Air").length;
+    const value = mockShipments.filter((s) => s.transportMode === mode).length;
     const total = mockShipments.length;
     const pct = total > 0 ? (value / total) * 100 : 0;
     return { value, total, pct };
-  }, []);
+  }, [mode]);
 
-  const trend = useMemo(() => buildTrend(value, 7), [value]);
+  const trend = useMemo(() => buildTrend(value, mode.length + 3), [value, mode]);
+
+  const title =
+    mode === "Air"
+      ? "Air Shipments"
+      : mode === "Ocean"
+        ? "Ocean Shipments"
+        : "Road Shipments";
+
+  if (variant === "compact") {
+    return (
+      <WidgetCard title={title}>
+        <div className="h-full flex flex-col justify-between">
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: `${meta.color}1A` }}
+            >
+              <Icon className="w-4 h-4" style={{ color: meta.color }} />
+            </div>
+            <span className="text-[11px] font-medium text-muted-foreground">
+              {meta.label}
+            </span>
+          </div>
+          <div className="mt-2">
+            <div className="text-4xl font-bold text-foreground tabular-nums leading-none">
+              {value.toLocaleString()}
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <TrendPill value={trendPct} positive={trendUp} />
+              <span className="text-[10.5px] text-muted-foreground tabular-nums">
+                {pct.toFixed(1)}% of total
+              </span>
+            </div>
+          </div>
+        </div>
+      </WidgetCard>
+    );
+  }
 
   return (
     <WidgetCard
-      title="Air Shipments"
-      subtitle="Active air freight movements"
-      className="bg-gradient-to-br from-card to-[hsl(217,75%,55%)]/[0.04]"
+      title={title}
+      subtitle={`Active ${meta.label.toLowerCase()} freight movements`}
     >
       <div className="h-full flex flex-col">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-lg bg-[hsl(217,75%,55%)]/10 flex items-center justify-center">
-                <Plane className="w-4 h-4" style={{ color: BLUE }} />
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center"
+                style={{ background: `${meta.color}1A` }}
+              >
+                <Icon className="w-4 h-4" style={{ color: meta.color }} />
               </div>
               <span className="text-[11px] font-semibold text-muted-foreground tracking-wider uppercase">
-                Air
+                {meta.label}
               </span>
             </div>
             <div className="mt-3 text-5xl font-bold text-foreground tabular-nums leading-none">
               {value.toLocaleString()}
             </div>
             <div className="mt-2 flex items-center gap-2">
-              <TrendPill value={12.3} positive />
+              <TrendPill value={trendPct} positive={trendUp} />
               <span className="text-[10.5px] text-muted-foreground">vs last 30d</span>
             </div>
           </div>
         </div>
 
-        {/* Big sparkline */}
         <div className="mt-3 h-20 -mx-1">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={trend} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
               <defs>
-                <linearGradient id="air-spark" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={BLUE} stopOpacity={0.5} />
-                  <stop offset="100%" stopColor={BLUE} stopOpacity={0} />
+                <linearGradient id={`kpi-spark-${mode}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={meta.color} stopOpacity={0.5} />
+                  <stop offset="100%" stopColor={meta.color} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <Area
                 type="monotone"
                 dataKey="v"
-                stroke={BLUE}
+                stroke={meta.color}
                 strokeWidth={2}
-                fill="url(#air-spark)"
+                fill={`url(#kpi-spark-${mode})`}
                 isAnimationActive={false}
               />
             </AreaChart>
@@ -542,19 +626,118 @@ const AirShipmentsKPI = () => {
 };
 
 // =============================================================
+//  Widget — Top 10 Consignees (table)
+// =============================================================
+
+const Top10Consignees = () => {
+  const rows = useMemo(() => {
+    type Row = {
+      name: string;
+      docs: number;
+      air: number;
+      ocean: number;
+      rail: number;
+    };
+    const map: Record<string, Row> = {};
+    mockShipments.forEach((s) => {
+      const r =
+        map[s.consignee] ||
+        (map[s.consignee] = {
+          name: s.consignee,
+          docs: 0,
+          air: 0,
+          ocean: 0,
+          rail: 0,
+        });
+      r.docs += 1;
+      if (s.transportMode === "Air") r.air += 1;
+      else if (s.transportMode === "Ocean") r.ocean += 1;
+      else r.rail += 1;
+    });
+    return Object.values(map)
+      .sort((a, b) => b.docs - a.docs)
+      .slice(0, 10);
+  }, []);
+
+  const max = rows[0]?.docs ?? 1;
+
+  return (
+    <WidgetCard
+      title="Top 10 Consignees"
+      subtitle="Ranked by total documents"
+      className="lg:col-span-2"
+    >
+      <div className="overflow-auto -mx-1">
+        <table className="w-full text-[12px] border-separate border-spacing-0">
+          <thead>
+            <tr className="text-left">
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-8">#</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">Consignee</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Plane className="inline w-3 h-3" /></th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Ship className="inline w-3 h-3" /></th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Truck className="inline w-3 h-3" /></th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right">Docs</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-[110px]">Share</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => {
+              const pct = (r.docs / max) * 100;
+              return (
+                <tr key={r.name} className="hover:bg-muted/50 transition-colors">
+                  <td className="px-2 py-1.5 border-t text-[11px] font-semibold text-muted-foreground tabular-nums">{i + 1}</td>
+                  <td className="px-2 py-1.5 border-t">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span
+                        className="w-1.5 h-5 rounded-full shrink-0"
+                        style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
+                      />
+                      <span className="truncate font-medium text-foreground" title={r.name}>{r.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.air || "—"}</td>
+                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.ocean || "—"}</td>
+                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.rail || "—"}</td>
+                  <td className="px-2 py-1.5 border-t text-right tabular-nums font-semibold text-foreground">{r.docs}</td>
+                  <td className="px-2 py-1.5 border-t">
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, background: PIE_PALETTE[i % PIE_PALETTE.length] }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </WidgetCard>
+  );
+};
+
+// =============================================================
 //  Layout
 // =============================================================
 
 const DashboardWidgets = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 py-2 animate-fade-in">
-      {/* row 1 */}
-      <DocumentsByConsignee />
+      {/* Row 1 — full donut (with legend), gauge, hero KPI */}
+      <DocumentsByConsignee variant="full" />
       <LoadGauge />
-      <AirShipmentsKPI />
+      <ModeKPI mode="Air" trendPct={12.3} trendUp />
 
-      {/* row 2 */}
+      {/* Row 2 — Top 10 table, minimal donut, transport modes */}
+      <Top10Consignees />
+      <DocumentsByConsignee variant="minimal" />
       <TransportModes />
+
+      {/* Row 3 — compact KPI variants */}
+      <ModeKPI mode="Air" trendPct={12.3} trendUp variant="compact" />
+      <ModeKPI mode="Ocean" trendPct={2.1} trendUp={false} variant="compact" />
+      <ModeKPI mode="Rail" trendPct={5.7} trendUp variant="compact" />
     </div>
   );
 };
