@@ -1,7 +1,8 @@
 import { useState } from "react";
-import type { Container, ContainerEventStatus } from "@/data/mockShipments";
+import type { Container, ContainerEvent } from "@/data/mockShipments";
 import { Table, List, ChevronRight, Check, Clock, Package, Minus } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   containers: Container[];
@@ -172,24 +173,52 @@ const EVENT_DEFS: { key: keyof NonNullable<Container["events"]>; label: string }
   { key: "emptyReturn", label: "EMPTY RETURN" },
 ];
 
-const EventCell = ({ e }: { e?: { status: ContainerEventStatus; date?: string } }) => {
-  if (!e || e.status === "pending") {
+const EventCell = ({ e }: { e?: ContainerEvent }) => {
+  if (!e) return <Minus className="w-3 h-3 text-muted-foreground/50" />;
+
+  if (e.status === "pending") {
     return (
-      <div className="flex items-center gap-1.5 text-muted-foreground/60">
-        <Minus className="w-3 h-3" />
-        <span className="text-[11px]">Pending</span>
-      </div>
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="inline-flex"><Minus className="w-3 h-3 text-muted-foreground/50" /></div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-[11px] max-w-[220px]">
+            <div className="font-semibold">Pending</div>
+            {e.location && <div className="text-muted-foreground">{e.location}{e.countryCode ? `, ${e.countryCode}` : ""}</div>}
+            {e.note && <div className="text-muted-foreground mt-1">{e.note}</div>}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
+
   const isDone = e.status === "completed";
   return (
-    <div className="flex items-center gap-1.5">
-      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${isDone ? "bg-success text-white" : "bg-primary text-white"}`}>
-        {isDone ? <Check className="w-2 h-2" /> : <Clock className="w-2 h-2" />}
-      </div>
-      <span className={`text-[11px] font-medium ${isDone ? "text-foreground" : "text-primary"}`}>
-        {e.date ?? (isDone ? "Done" : "In progress")}
-      </span>
-    </div>
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-1.5 cursor-default">
+            <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center shrink-0 ${isDone ? "bg-success text-white" : "bg-primary text-white"}`}>
+              {isDone ? <Check className="w-2 h-2" /> : <Clock className="w-2 h-2" />}
+            </div>
+            <div className="leading-tight">
+              <div className={`text-[11px] font-medium ${isDone ? "text-foreground" : "text-primary"}`}>
+                {e.countryCode ?? ""}{e.countryCode && e.date ? " · " : ""}{e.date ?? ""}
+              </div>
+              {e.time && <div className="text-[10px] text-muted-foreground">{e.time}</div>}
+            </div>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-[11px] max-w-[260px]">
+          <div className="font-semibold">{isDone ? "Completed" : "In progress"}</div>
+          {e.location && <div className="text-muted-foreground">{e.location}{e.countryCode ? `, ${e.countryCode}` : ""}</div>}
+          {(e.date || e.time) && <div className="text-muted-foreground">{[e.date, e.time].filter(Boolean).join(" · ")}</div>}
+          {e.vessel && <div className="text-muted-foreground">Vessel: {e.vessel}</div>}
+          {e.reference && <div className="text-muted-foreground">Ref: {e.reference}</div>}
+          {e.note && <div className="text-muted-foreground mt-1">{e.note}</div>}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
