@@ -70,6 +70,15 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
     let prevCode = oCode;
     let prevCountry = oCountry;
 
+    // Build UN/LOCODE-like 5-char code for a port name (e.g. "Haifa" + IL -> "ILHFA")
+    const portCode = (cityName: string, countryName: string): string => {
+      const country = (COUNTRY_CODES[cityName] || countryName || "XX").slice(0, 2).toUpperCase();
+      const cityRaw = (CITY_CODES[cityName] || cityName).replace(/[^A-Za-z]/g, "").toUpperCase();
+      const consonants = cityRaw.replace(/[AEIOU]/g, "");
+      const port = (consonants.length >= 3 ? consonants : cityRaw).slice(0, 3).padEnd(3, "X");
+      return `${country}${port}`;
+    };
+
     const baseEtd = s.etd ? new Date(s.etd) : new Date();
     const baseEta = s.eta ? new Date(s.eta) : new Date(baseEtd.getTime() + 1000 * 60 * 60 * 24 * 14);
     const totalMs = baseEta.getTime() - baseEtd.getTime();
@@ -80,6 +89,8 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
       const nextLocation = isLast ? s.destination : transshipmentHubs[(hash + i) % transshipmentHubs.length];
       const nextCode = isLast ? dCode : nextLocation.slice(0, 3).toUpperCase();
       const nextCountry = isLast ? dCountry : "";
+      const loadLocode = portCode(prevLocation, prevCountry);
+      const dischargeLocode = portCode(nextLocation, nextCountry);
       const carrier = carriers[(hash + i) % carriers.length];
       const vessel = vesselNames[(hash + i + (isOcean ? 1 : 0)) % vesselNames.length];
       const ref = isOcean
@@ -91,6 +102,9 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
       const now = Date.now();
       const status: "completed" | "in_transit" | "scheduled" =
         legEta.getTime() < now ? "completed" : legEtd.getTime() < now ? "in_transit" : "scheduled";
+      // Actuals known once departure has happened
+      const departureActual = legEtd.getTime() < now;
+      const arrivalActual = legEta.getTime() < now;
 
       legs.push({
         index: i + 1,
@@ -100,11 +114,15 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
         to: nextLocation,
         toCode: nextCode,
         toCountry: nextCountry,
+        loadLocode,
+        dischargeLocode,
         carrier,
         vessel,
         ref,
         etd: legEtd.toISOString(),
         eta: legEta.toISOString(),
+        departureActual,
+        arrivalActual,
         status,
         isLast,
       });
@@ -346,13 +364,13 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2 text-sm">
                               <div>
-                                <div className="font-bold text-foreground">{leg.fromCode}</div>
-                                {leg.fromCountry && <div className="text-[10px] text-muted-foreground">{leg.fromCountry}</div>}
+                                <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Load</div>
+                                <div className="font-bold text-foreground">{leg.loadLocode}</div>
                               </div>
                               <ArrowRight className="w-4 h-4 text-muted-foreground" />
                               <div>
-                                <div className="font-bold text-foreground">{leg.toCode}</div>
-                                {leg.toCountry && <div className="text-[10px] text-muted-foreground">{leg.toCountry}</div>}
+                                <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Discharge</div>
+                                <div className="font-bold text-foreground">{leg.dischargeLocode}</div>
                               </div>
                               {!leg.isLast && (
                                 <span className="ml-2 text-[10px] font-medium text-warning bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20">
@@ -384,13 +402,19 @@ const ShipmentDetailPopup = ({ shipment, open, onClose }: Props) => {
                           {/* Times */}
                           <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t">
                             <div>
-                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Departure</div>
-                              <div className="font-medium text-foreground mt-0.5">{formatDate(leg.etd)}</div>
+                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">ETD / ATD</div>
+                              <div className={`font-medium mt-0.5 ${leg.departureActual ? "text-success" : "text-foreground"}`}>
+                                {formatDate(leg.etd)}
+                                <span className="ml-1 text-[10px] text-muted-foreground">({leg.departureActual ? "ATD" : "ETD"})</span>
+                              </div>
                               <div className="text-[10px] text-muted-foreground">{leg.from}</div>
                             </div>
                             <div>
-                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Arrival</div>
-                              <div className="font-medium text-foreground mt-0.5">{formatDate(leg.eta)}</div>
+                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">ETA / ATA</div>
+                              <div className={`font-medium mt-0.5 ${leg.arrivalActual ? "text-success" : "text-foreground"}`}>
+                                {formatDate(leg.eta)}
+                                <span className="ml-1 text-[10px] text-muted-foreground">({leg.arrivalActual ? "ATA" : "ETA"})</span>
+                              </div>
                               <div className="text-[10px] text-muted-foreground">{leg.to}</div>
                             </div>
                           </div>
