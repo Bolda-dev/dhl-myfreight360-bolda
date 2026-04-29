@@ -206,7 +206,7 @@ const LoadGauge = () => {
 
 // ================== Widget 3: Count Transport Mode — ALL ==================
 
-const modeMeta: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
+const modeMeta: Record<string, { label: string; icon: React.ComponentType<React.SVGProps<SVGSVGElement>>; color: string }> = {
   Air: { label: "Air", icon: Plane, color: "hsl(217, 70%, 55%)" },
   Ocean: { label: "Sea", icon: Ship, color: "hsl(190, 75%, 45%)" },
   Rail: { label: "Road", icon: Truck, color: "hsl(25, 90%, 55%)" },
