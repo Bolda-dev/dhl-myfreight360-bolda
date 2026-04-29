@@ -637,9 +637,13 @@ const Top10Consignees = () => {
       air: number;
       ocean: number;
       rail: number;
+      origins: Set<string>;
+      destinations: Set<string>;
+      exceptions: number;
+      onTime: number;
     };
     const map: Record<string, Row> = {};
-    mockShipments.forEach((s) => {
+    mockShipments.forEach((s: any) => {
       const r =
         map[s.consignee] ||
         (map[s.consignee] = {
@@ -648,65 +652,69 @@ const Top10Consignees = () => {
           air: 0,
           ocean: 0,
           rail: 0,
+          origins: new Set<string>(),
+          destinations: new Set<string>(),
+          exceptions: 0,
+          onTime: 0,
         });
       r.docs += 1;
       if (s.transportMode === "Air") r.air += 1;
       else if (s.transportMode === "Ocean") r.ocean += 1;
       else r.rail += 1;
+      if (s.origin) r.origins.add(s.origin);
+      if (s.destination) r.destinations.add(s.destination);
+      if (s.exceptions && s.exceptions.length) r.exceptions += 1;
+      else r.onTime += 1;
     });
     return Object.values(map)
       .sort((a, b) => b.docs - a.docs)
       .slice(0, 10);
   }, []);
 
-  const max = rows[0]?.docs ?? 1;
+  const totalDocs = rows.reduce((s, r) => s + r.docs, 0) || 1;
 
   return (
     <WidgetCard
       title="Top 10 Consignees"
-      subtitle="Ranked by total documents"
+      subtitle="Ranked by total documents — full breakdown"
       className="lg:col-span-2"
     >
       <div className="overflow-auto -mx-1">
         <table className="w-full text-[12px] border-separate border-spacing-0">
           <thead>
-            <tr className="text-left">
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-8">#</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase">Consignee</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Plane className="inline w-3 h-3" /></th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Ship className="inline w-3 h-3" /></th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right"><Truck className="inline w-3 h-3" /></th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right">Docs</th>
-              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-[110px]">Share</th>
+            <tr className="text-left bg-muted/40">
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase w-8 border-b">#</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase border-b">Consignee</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Docs</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Air</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Ocean</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Road</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Origins</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Dest.</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Exc.</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">On-time %</th>
+              <th className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground tracking-wider uppercase text-right border-b">Share</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, i) => {
-              const pct = (r.docs / max) * 100;
+              const share = (r.docs / totalDocs) * 100;
+              const onTimePct = r.docs > 0 ? (r.onTime / r.docs) * 100 : 0;
               return (
-                <tr key={r.name} className="hover:bg-muted/50 transition-colors">
-                  <td className="px-2 py-1.5 border-t text-[11px] font-semibold text-muted-foreground tabular-nums">{i + 1}</td>
-                  <td className="px-2 py-1.5 border-t">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        className="w-1.5 h-5 rounded-full shrink-0"
-                        style={{ background: PIE_PALETTE[i % PIE_PALETTE.length] }}
-                      />
-                      <span className="truncate font-medium text-foreground" title={r.name}>{r.name}</span>
-                    </div>
+                <tr key={r.name} className="hover:bg-muted/40 transition-colors">
+                  <td className="px-2 py-1.5 border-b text-[11px] font-semibold text-muted-foreground tabular-nums">{i + 1}</td>
+                  <td className="px-2 py-1.5 border-b">
+                    <span className="truncate font-medium text-foreground block max-w-[240px]" title={r.name}>{r.name}</span>
                   </td>
-                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.air || "—"}</td>
-                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.ocean || "—"}</td>
-                  <td className="px-2 py-1.5 border-t text-right tabular-nums text-muted-foreground">{r.rail || "—"}</td>
-                  <td className="px-2 py-1.5 border-t text-right tabular-nums font-semibold text-foreground">{r.docs}</td>
-                  <td className="px-2 py-1.5 border-t">
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, background: PIE_PALETTE[i % PIE_PALETTE.length] }}
-                      />
-                    </div>
-                  </td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums font-semibold text-foreground">{r.docs}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.air || "—"}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.ocean || "—"}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.rail || "—"}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.origins.size}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.destinations.size}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{r.exceptions || "—"}</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-foreground">{onTimePct.toFixed(0)}%</td>
+                  <td className="px-2 py-1.5 border-b text-right tabular-nums text-muted-foreground">{share.toFixed(1)}%</td>
                 </tr>
               );
             })}
