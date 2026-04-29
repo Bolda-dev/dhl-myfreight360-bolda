@@ -529,6 +529,10 @@ const ShipmentTable = () => {
   const [filterPopoverCol, setFilterPopoverCol] = useState<string | null>(null);
   const [filterSearch, setFilterSearch] = useState("");
 
+  // Date filters per date-column: which sub-field (estimated/actual) and selected range
+  type DateFilter = { field: "estimated" | "actual"; range: DateRange | undefined };
+  const [dateFilters, setDateFilters] = useState<Record<string, DateFilter>>({});
+
   const toggleSort = (colId: string) => {
     setSortState((prev) => {
       if (!prev || prev.colId !== colId) return { colId, dir: "asc" };
@@ -537,6 +541,10 @@ const ShipmentTable = () => {
     });
   };
   const isColumnFiltered = (colId: string) => {
+    if (isDateColumn(colId)) {
+      const f = dateFilters[colId];
+      return !!f && !!f.range && (!!f.range.from || !!f.range.to);
+    }
     const set = columnFilters[colId];
     return !!set && set.size > 0;
   };
@@ -574,6 +582,13 @@ const ShipmentTable = () => {
   };
 
   const isDateColumn = (colId: string) => colId === "departure" || colId === "arrival";
+
+  // Sub-field accessor: returns the raw ISO date for the selected sub-field of a date column
+  const getDateFieldValue = (s: Shipment, colId: string, field: "estimated" | "actual"): string | null | undefined => {
+    if (colId === "departure") return field === "estimated" ? s.etd : s.atd;
+    if (colId === "arrival") return field === "estimated" ? s.eta : s.ata;
+    return null;
+  };
 
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>(() => DATA_COLUMNS.map((c) => c.id));
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(() => {
