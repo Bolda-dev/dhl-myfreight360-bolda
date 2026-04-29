@@ -165,13 +165,35 @@ function genContainer(id: string, type: string, origin: string, destination: str
   const volumeCbm = 40 + Math.floor(Math.random() * 20);
   const chargeableKg = Math.max(weightKg, Math.round(volumeCbm * 167));
   const pieces = 800 + Math.floor(Math.random() * 400);
-  const eventStages: ContainerEventStatus[] = ["completed", "completed", "current", "pending", "pending"];
   const stage = Math.floor(Math.random() * 5);
-  const mk = (i: number): { status: ContainerEventStatus; date?: string } => ({
-    status: i < stage ? "completed" : i === stage ? "current" : "pending",
-    date: i <= stage ? `Sep ${18 + i * 2}` : undefined,
-  });
-  void eventStages;
+  const originCountry = COUNTRY_CODES[origin] ?? "";
+  const destCountry = COUNTRY_CODES[destination] ?? "";
+  const originTitle = origin.charAt(0) + origin.slice(1).toLowerCase();
+  const destTitle = destination.charAt(0) + destination.slice(1).toLowerCase();
+  const vessel = ["MSC LORETO", "MAERSK SELETAR", "EVER GIVEN", "CMA CGM MARCO POLO"][Math.floor(Math.random() * 4)];
+  const ref = `BK-${Math.floor(100000 + Math.random() * 899999)}`;
+  const eventMeta: { location: string; countryCode: string; note: string }[] = [
+    { location: `${originTitle} CY`, countryCode: originCountry, note: "Empty container picked up & gated in at origin terminal." },
+    { location: `${originTitle} Port`, countryCode: originCountry, note: "Loaded on board vessel at origin port." },
+    { location: `${destTitle} Port`, countryCode: destCountry, note: "Discharged from vessel at destination port." },
+    { location: `${destTitle} Terminal`, countryCode: destCountry, note: "Gated out from destination terminal for delivery." },
+    { location: `${destTitle} Depot`, countryCode: destCountry, note: "Empty container returned to depot." },
+  ];
+  const times = ["08:15", "11:40", "14:05", "09:30", "16:20"];
+  const mk = (i: number): ContainerEvent => {
+    const status: ContainerEventStatus = i < stage ? "completed" : i === stage ? "current" : "pending";
+    const meta = eventMeta[i];
+    return {
+      status,
+      date: status !== "pending" ? `Sep ${18 + i * 2}` : undefined,
+      time: status !== "pending" ? times[i] : undefined,
+      location: meta.location,
+      countryCode: meta.countryCode,
+      vessel: i === 1 || i === 2 ? vessel : undefined,
+      reference: ref,
+      note: meta.note,
+    };
+  };
   return {
     id, type, quantity: 1,
     descriptionOfGoods: goods,
