@@ -15,7 +15,7 @@ import {
 
 const mainNavItems = [
   { label: "Dashboards", submenu: ["Overview", "Analytics", "Reports"] },
-  { label: "Modules", submenu: ["Shipments", "Warehousing", "Customs"], active: true },
+  { label: "Modules", submenu: ["Shipments", "Warehousing", "Customs"], active: true, activeItem: "Shipments" },
 ];
 
 const iconNavItems = [
@@ -49,7 +49,7 @@ const Navbar = () => {
                     : item.active
                       ? "text-foreground"
                       : "text-muted-foreground hover:bg-accent hover:text-foreground"
-                } ${item.active ? "after:content-[''] after:absolute after:left-2.5 after:right-2.5 after:-bottom-[9px] after:h-[2px] after:bg-primary after:rounded-full" : ""}`}
+                } ${item.active ? "after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-[9px] after:h-[2px] after:bg-primary after:rounded-full" : ""}`}
               >
                 {item.label}
                 <ChevronDown className="w-3 h-3 opacity-50" />
@@ -59,7 +59,11 @@ const Navbar = () => {
               {item.submenu.map((sub) => (
                 <button
                   key={sub}
-                  className="w-full text-left px-2.5 py-1.5 text-xs rounded hover:bg-accent transition-colors text-foreground"
+                  className={`w-full text-left px-2.5 py-1.5 text-xs rounded hover:bg-accent transition-colors ${
+                    item.activeItem === sub
+                      ? "bg-accent text-foreground font-medium"
+                      : "text-foreground"
+                  }`}
                   onClick={() => setOpenMenu(null)}
                 >
                   {sub}
