@@ -736,6 +736,17 @@ const ShipmentTable = () => {
       const v = getColumnValue(s, colId);
       if (!valueSet.has(v)) return false;
     }
+    // Date-column range filters
+    for (const [colId, df] of Object.entries(dateFilters)) {
+      if (!df || !df.range) continue;
+      const { from, to } = df.range;
+      if (!from && !to) continue;
+      const raw = getDateFieldValue(s, colId, df.field);
+      if (!raw) return false;
+      const t = new Date(raw).getTime();
+      if (from && t < new Date(from.getFullYear(), from.getMonth(), from.getDate()).getTime()) return false;
+      if (to && t > new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59).getTime()) return false;
+    }
     return true;
   });
 
