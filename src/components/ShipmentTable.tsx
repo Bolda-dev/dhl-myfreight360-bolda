@@ -539,10 +539,7 @@ const ShipmentTable = () => {
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [invoiceShipment, setInvoiceShipment] = useState<Shipment | null>(null);
-  const [eventsShipment, setEventsShipment] = useState<Shipment | null>(null);
-  const [tagsShipment, setTagsShipment] = useState<Shipment | null>(null);
-  const [remarksShipment, setRemarksShipment] = useState<Shipment | null>(null);
+  const [detailTab, setDetailTab] = useState<string>("general");
   const [activeStatus, setActiveStatus] = useState<string>("All");
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -730,32 +727,39 @@ const ShipmentTable = () => {
     setDragOverCol(null);
   };
 
-  // Tags save
+  // Tags save (works on currently-open shipment)
   const handleTagsSave = (tags: string[]) => {
-    if (!tagsShipment) return;
-    setShipments((prev) => prev.map((s) => s.id === tagsShipment.id ? { ...s, tags } : s));
-    setTagsShipment((prev) => prev ? { ...prev, tags } : null);
+    if (!selectedShipment) return;
+    setShipments((prev) => prev.map((s) => s.id === selectedShipment.id ? { ...s, tags } : s));
+    setSelectedShipment((prev) => prev ? { ...prev, tags } : null);
   };
 
-  // Remarks add
+  // Remarks add (works on currently-open shipment)
   const handleRemarkAdd = (text: string) => {
-    if (!remarksShipment) return;
+    if (!selectedShipment) return;
     const newRemark: Remark = {
       id: `r-${Date.now()}`,
       author: "John Smith",
       text,
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }),
     };
-    setShipments((prev) => prev.map((s) => s.id === remarksShipment.id ? { ...s, remarks: [...s.remarks, newRemark] } : s));
-    setRemarksShipment((prev) => prev ? { ...prev, remarks: [...prev.remarks, newRemark] } : null);
+    setShipments((prev) => prev.map((s) => s.id === selectedShipment.id ? { ...s, remarks: [...s.remarks, newRemark] } : s));
+    setSelectedShipment((prev) => prev ? { ...prev, remarks: [...prev.remarks, newRemark] } : null);
+  };
+
+  const openPopup = (s: Shipment, tab: string) => {
+    setSelectedShipment(s);
+    setDetailTab(tab);
+    setDetailOpen(true);
   };
 
   const helpers: TableHelpers = {
-    openDetail: (s) => { setSelectedShipment(s); setDetailOpen(true); },
-    openInvoices: (s) => setInvoiceShipment(s),
-    openEvents: (s) => setEventsShipment(s),
-    openTags: (s) => setTagsShipment(s),
-    openRemarks: (s) => setRemarksShipment(s),
+    openDetail: (s) => openPopup(s, "general"),
+    openInvoices: (s) => openPopup(s, "invoices"),
+    openEvents: (s) => openPopup(s, "general"),
+    openTags: (s) => openPopup(s, "tags"),
+    openRemarks: (s) => openPopup(s, "remarks"),
+    openContainers: (s) => openPopup(s, "containers"),
   };
 
   const baseFiltered = shipments.filter((s) => {
