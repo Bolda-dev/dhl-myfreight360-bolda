@@ -55,7 +55,7 @@ const WidgetCard = ({
   children: React.ReactNode;
 }) => (
   <div
-    className={`group relative bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col ${className}`}
+    className={`group relative bg-card border rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden ${className}`}
   >
     <div className="flex items-start justify-between px-4 pt-3.5 pb-2">
       <div className="min-w-0">
@@ -99,13 +99,25 @@ const TrendPill = ({ value, positive = true }: { value: number; positive?: boole
 };
 
 // Tiny custom recharts tooltip
-const ChartTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name?: string; value?: number; payload?: { name: string; value: number } }> }) => {
+const ChartTooltip = ({
+  active,
+  payload,
+  unit = "docs",
+}: {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: number; payload?: { name: string; value: number } }>;
+  unit?: string;
+}) => {
   if (!active || !payload?.length) return null;
-  const p = payload[0].payload as { name: string; value: number };
+  const p = payload[0].payload as { name?: string; value?: number; v?: number; i?: number };
+  const name = p.name ?? (typeof p.i === "number" ? `Week ${p.i + 1}` : "");
+  const value = p.value ?? p.v ?? 0;
   return (
     <div className="rounded-md border bg-popover px-2 py-1 shadow-md text-[11px]">
-      <div className="font-medium text-popover-foreground">{p.name}</div>
-      <div className="text-muted-foreground tabular-nums">{p.value} docs</div>
+      {name && <div className="font-medium text-popover-foreground">{name}</div>}
+      <div className="text-muted-foreground tabular-nums">
+        {Math.round(value as number)} {unit}
+      </div>
     </div>
   );
 };
