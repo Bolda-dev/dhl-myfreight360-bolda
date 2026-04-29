@@ -207,11 +207,21 @@ const ContainerJourneyCard = ({ container: c, index }: { container: Container; i
                         <div className={`text-xs font-semibold ${isDone || isCurrent ? "text-foreground" : "text-muted-foreground"}`}>
                           {def.label}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">
-                          {e?.countryCode && <span className="font-semibold tracking-wider">{e.countryCode}</span>}
-                          {e?.countryCode && (e?.date || e?.time) && " • "}
-                          {e?.date}{e?.time ? ` · ${e.time}` : ""}
-                          {!e?.date && !e?.time && status === "pending" && "—"}
+                        <div className="text-[10px] text-muted-foreground leading-relaxed">
+                          {(e?.location || e?.countryCode) && (
+                            <span>
+                              {e?.location}
+                              {e?.location && e?.countryCode ? ", " : ""}
+                              {e?.countryCode && <span className="font-semibold tracking-wider">{e.countryCode}</span>}
+                            </span>
+                          )}
+                          {(e?.date || e?.time) && (
+                            <>
+                              {(e?.location || e?.countryCode) && " • "}
+                              <span>{e?.date}{e?.time ? ` · ${e.time}` : ""}</span>
+                            </>
+                          )}
+                          {!e?.date && !e?.time && !e?.location && status === "pending" && "—"}
                         </div>
                       </div>
                     </div>
