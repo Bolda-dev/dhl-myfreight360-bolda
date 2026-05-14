@@ -213,8 +213,8 @@ export const DocumentsByConsignee = ({ variant = "full", title }: { variant?: "f
         title={title ?? "Shipments by mode"}
         hideHoverActions
       >
-        <div className="h-full w-full flex flex-col items-center justify-center gap-2 min-h-0 overflow-hidden">
-          <div className="relative flex-1 min-h-[220px] w-full">
+        <div className="h-full w-full flex flex-col gap-2 min-h-0 overflow-hidden">
+          <div className="relative flex-1 min-h-[220px] w-full" style={{ height: "100%" }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
