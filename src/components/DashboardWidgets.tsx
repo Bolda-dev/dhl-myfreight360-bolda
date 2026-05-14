@@ -126,7 +126,7 @@ const ChartTooltip = ({
 //  Widget 1 — Documents by Consignee (donut + ranked legend)
 // =============================================================
 
-const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minimal" }) => {
+export const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minimal" }) => {
   const { data, total, top } = useMemo(() => {
     const counts: Record<string, number> = {};
     mockShipments.forEach((s) => {
@@ -490,7 +490,7 @@ const TransportModes = () => {
 
 type KPIVariant = "full" | "compact";
 
-const ModeKPI = ({
+export const ModeKPI = ({
   mode,
   trendPct = 12.3,
   trendUp = true,
