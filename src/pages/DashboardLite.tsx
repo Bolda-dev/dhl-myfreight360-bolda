@@ -1,5 +1,5 @@
 import Navbar from "@/components/Navbar";
-import ShipmentTable from "@/components/ShipmentTable";
+import ShipmentTableLite from "@/components/ShipmentTableLite";
 import { ModeKPI, DocumentsByConsignee } from "@/components/DashboardWidgets";
 import { RefreshCw, Download, Filter } from "lucide-react";
 import {
@@ -64,7 +64,7 @@ const DashboardLite = () => {
             {/* Right: full-height table */}
             <div className="lg:col-span-3 min-h-0 flex flex-col bg-card border rounded-xl overflow-hidden">
               <div className="flex-1 min-h-0 overflow-hidden">
-                <ShipmentTable compactToolbar toolbarTitle="Last updated shipments" />
+                <ShipmentTableLite title="Last updated shipments" />
               </div>
             </div>
           </div>
