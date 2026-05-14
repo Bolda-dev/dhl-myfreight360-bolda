@@ -213,43 +213,43 @@ export const DocumentsByConsignee = ({ variant = "full", title }: { variant?: "f
         title={title ?? "Shipments by mode"}
         hideHoverActions
       >
-        <div className="h-full w-full flex flex-col items-center justify-center gap-2 min-h-0 overflow-hidden">
-          <div className="relative flex-1 min-h-0 w-full flex items-center justify-center">
-            <div className="relative h-full w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={modeData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius="68%"
-                    outerRadius="96%"
-                    paddingAngle={1.5}
-                    stroke="hsl(var(--card))"
-                    strokeWidth={2}
-                    isAnimationActive={false}
-                  >
-                    {modeData.map((d, i) => (
-                      <Cell key={i} fill={d.color} />
-                    ))}
-                  </Pie>
-                  <ReTooltip
-                    content={<ChartTooltip unit="shipments" />}
-                    wrapperStyle={{ zIndex: 60, outline: "none" }}
-                    allowEscapeViewBox={{ x: true, y: true }}
-                    cursor={false}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
-                  Total
-                </div>
-                <div className="text-2xl font-bold text-foreground tabular-nums leading-tight">
-                  {modeTotal.toLocaleString()}
-                </div>
+        <div className="h-full w-full flex flex-col gap-2 min-h-0 overflow-hidden">
+          <div className="relative flex-1 min-h-[220px] w-full">
+            <div className="absolute inset-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={modeData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="62%"
+                  outerRadius="92%"
+                  paddingAngle={1.5}
+                  stroke="hsl(var(--card))"
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                >
+                  {modeData.map((d, i) => (
+                    <Cell key={i} fill={d.color} />
+                  ))}
+                </Pie>
+                <ReTooltip
+                  content={<ChartTooltip unit="shipments" />}
+                  wrapperStyle={{ zIndex: 60, outline: "none" }}
+                  allowEscapeViewBox={{ x: true, y: true }}
+                  cursor={false}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
+                Total
+              </div>
+              <div className="text-2xl font-bold text-foreground tabular-nums leading-tight">
+                {modeTotal.toLocaleString()}
               </div>
             </div>
           </div>
