@@ -215,7 +215,7 @@ export const DocumentsByConsignee = ({ variant = "full", title }: { variant?: "f
       >
         <div className="h-full w-full flex flex-col items-center justify-center gap-2 min-h-0 overflow-hidden">
           <div className="relative flex-1 min-h-0 w-full flex items-center justify-center">
-            <div className="relative h-full aspect-square max-w-full">
+            <div className="relative h-full w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
