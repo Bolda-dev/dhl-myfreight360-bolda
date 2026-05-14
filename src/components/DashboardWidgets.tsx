@@ -600,9 +600,6 @@ export const ModeKPI = ({
             >
               <Icon className="w-4 h-4" style={{ color: meta.color }} />
             </div>
-            <span className="text-[11px] font-medium text-muted-foreground">
-              {title}
-            </span>
           </div>
           <div className="mt-1.5">
             <div className="text-3xl font-bold text-foreground tabular-nums leading-none">
