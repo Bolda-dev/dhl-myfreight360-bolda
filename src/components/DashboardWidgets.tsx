@@ -47,11 +47,13 @@ const WidgetCard = ({
   title,
   subtitle,
   className = "",
+  hideHoverActions = false,
   children,
 }: {
   title: string;
   subtitle?: string;
   className?: string;
+  hideHoverActions?: boolean;
   children: React.ReactNode;
 }) => (
   <div
@@ -68,6 +70,7 @@ const WidgetCard = ({
           </p>
         )}
       </div>
+      {!hideHoverActions && (
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <button className="h-6 w-6 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
           <RefreshCw className="w-3 h-3" />
@@ -79,6 +82,7 @@ const WidgetCard = ({
           <MoreHorizontal className="w-3 h-3" />
         </button>
       </div>
+      )}
     </div>
     <div className="flex-1 min-h-0 px-4 pb-4">{children}</div>
   </div>
@@ -192,51 +196,74 @@ export const DocumentsByConsignee = ({ variant = "full", title }: { variant?: "f
   );
 
   if (variant === "minimal") {
+    const modeData = (() => {
+      const c: Record<string, number> = { Air: 0, Ocean: 0, Rail: 0 };
+      mockShipments.forEach((s) => {
+        if (c[s.transportMode] !== undefined) c[s.transportMode] += 1;
+      });
+      return [
+        { name: "Air", value: c.Air, color: BLUE },
+        { name: "Ocean", value: c.Ocean, color: TEAL },
+        { name: "Road", value: c.Rail, color: ORANGE },
+      ];
+    })();
+    const modeTotal = modeData.reduce((s, d) => s + d.value, 0);
     return (
       <WidgetCard
-        title={title ?? "Documents by Consignee"}
-        subtitle={`Top: ${top?.name ?? "—"}`}
+        title={title ?? "Shipments by mode"}
+        hideHoverActions
       >
-        <div className="h-full w-full flex items-center justify-center py-2 min-h-[200px]">
-          <div className="relative w-full h-full max-w-full max-h-full aspect-square mx-auto">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={data}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius="68%"
-                  outerRadius="96%"
-                  paddingAngle={1.5}
-                  stroke="hsl(var(--card))"
-                  strokeWidth={2}
-                  isAnimationActive={false}
-                >
-                  {data.map((_, i) => (
-                    <Cell key={i} fill={PIE_PALETTE[i % PIE_PALETTE.length]} />
-                  ))}
-                </Pie>
-                <ReTooltip
-                  content={<ChartTooltip />}
-                  wrapperStyle={{ zIndex: 60, outline: "none" }}
-                  allowEscapeViewBox={{ x: true, y: true }}
-                  cursor={false}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
-                Total
-              </div>
-              <div className="text-3xl font-bold text-foreground tabular-nums leading-tight">
-                {total.toLocaleString()}
-              </div>
-              <div className="text-[10px] text-muted-foreground mt-0.5">
-                {data.length} consignees
+        <div className="h-full w-full flex flex-col items-center justify-center gap-2 min-h-0 overflow-hidden">
+          <div className="relative flex-1 min-h-0 w-full flex items-center justify-center">
+            <div className="relative h-full aspect-square max-w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={modeData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="68%"
+                    outerRadius="96%"
+                    paddingAngle={1.5}
+                    stroke="hsl(var(--card))"
+                    strokeWidth={2}
+                    isAnimationActive={false}
+                  >
+                    {modeData.map((d, i) => (
+                      <Cell key={i} fill={d.color} />
+                    ))}
+                  </Pie>
+                  <ReTooltip
+                    content={<ChartTooltip unit="shipments" />}
+                    wrapperStyle={{ zIndex: 60, outline: "none" }}
+                    allowEscapeViewBox={{ x: true, y: true }}
+                    cursor={false}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
+                  Total
+                </div>
+                <div className="text-2xl font-bold text-foreground tabular-nums leading-tight">
+                  {modeTotal.toLocaleString()}
+                </div>
               </div>
             </div>
+          </div>
+          <div className="flex items-center justify-center gap-3 shrink-0 pb-1">
+            {modeData.map((d) => (
+              <div key={d.name} className="flex items-center gap-1.5">
+                <span
+                  className="w-2.5 h-2.5 rounded-sm"
+                  style={{ background: d.color }}
+                />
+                <span className="text-[11px] text-foreground font-medium">{d.name}</span>
+                <span className="text-[10.5px] text-muted-foreground tabular-nums">{d.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </WidgetCard>
@@ -564,7 +591,7 @@ export const ModeKPI = ({
 
   if (variant === "compact") {
     return (
-      <WidgetCard title={title}>
+      <WidgetCard title={title} hideHoverActions>
         <div className="h-full flex flex-col justify-between">
           <div className="flex items-center gap-2">
             <div
@@ -574,7 +601,7 @@ export const ModeKPI = ({
               <Icon className="w-4 h-4" style={{ color: meta.color }} />
             </div>
             <span className="text-[11px] font-medium text-muted-foreground">
-              {meta.label}
+              {title}
             </span>
           </div>
           <div className="mt-2">

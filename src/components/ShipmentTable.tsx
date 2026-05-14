@@ -537,7 +537,12 @@ const DEST_COL: ColumnDef = {
   },
 };
 
-const ShipmentTable = () => {
+interface ShipmentTableProps {
+  compactToolbar?: boolean;
+  toolbarTitle?: string;
+}
+
+const ShipmentTable = ({ compactToolbar = false, toolbarTitle }: ShipmentTableProps = {}) => {
   const STATUS_FILTERS = ["All", "In Transit", "Delivered", "Delayed"] as const;
 
   const [shipments, setShipments] = useState<Shipment[]>(mockShipments);
@@ -840,6 +845,28 @@ const ShipmentTable = () => {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Toolbar */}
+      {compactToolbar ? (
+        <div className="flex items-center gap-2 px-3 py-2 shrink-0 border-b">
+          <h3 className="text-[11px] font-semibold text-muted-foreground tracking-[0.08em] uppercase">
+            {toolbarTitle ?? "Shipments"}
+          </h3>
+          <div className="flex-1" />
+          <span className="text-[11px] text-muted-foreground">{filteredShipments.length} records</span>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={() => setColumnManagerOpen(true)} className="h-7 w-7 rounded flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border">
+                  <Columns3 className="w-3.5 h-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">Manage columns</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <button className="h-7 w-7 rounded flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border">
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : (
       <div className="flex items-center gap-2 px-1 py-1.5 shrink-0">
         {searchOpen ? (
           <div className="flex items-center gap-1.5 bg-accent rounded px-2 py-1">
@@ -900,6 +927,7 @@ const ShipmentTable = () => {
           <RefreshCw className="w-3.5 h-3.5" />
         </button>
       </div>
+      )}
 
       {/* Table card */}
       <div className="bg-card rounded-lg border shadow-sm flex flex-col flex-1 min-h-0 overflow-hidden">
