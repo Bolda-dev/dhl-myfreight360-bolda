@@ -48,17 +48,21 @@ const DashboardLite = () => {
         </div>
 
         <main className="flex-1 min-h-0 overflow-hidden px-6 pb-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 py-2 animate-fade-in h-full">
-            {/* Left: 2x2 quad of squares */}
-            <div className="grid grid-cols-2 grid-rows-2 gap-4 min-h-0">
-              <ModeKPI mode="Air" trendPct={12.3} trendUp variant="compact" title="Air in Transit" />
-              <ModeKPI mode="Ocean" trendPct={2.1} trendUp={false} variant="compact" title="Ocean in transit" />
-              <ModeKPI mode="Rail" trendPct={5.7} trendUp variant="compact" title="Road in transit" />
-              <DocumentsByConsignee variant="minimal" title="Shipments by product" />
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 py-2 animate-fade-in h-full">
+            {/* Left column: 3 slim KPIs on top, pie filling the rest */}
+            <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
+              <div className="grid grid-cols-3 gap-4 shrink-0">
+                <ModeKPI mode="Air" trendPct={12.3} trendUp variant="compact" title="Air in Transit" />
+                <ModeKPI mode="Ocean" trendPct={2.1} trendUp={false} variant="compact" title="Ocean in transit" />
+                <ModeKPI mode="Rail" trendPct={5.7} trendUp variant="compact" title="Road in transit" />
+              </div>
+              <div className="flex-1 min-h-0">
+                <DocumentsByConsignee variant="minimal" title="Shipments by product" />
+              </div>
             </div>
 
             {/* Right: full-height table */}
-            <div className="min-h-0 flex flex-col bg-card border rounded-xl overflow-hidden">
+            <div className="lg:col-span-3 min-h-0 flex flex-col bg-card border rounded-xl overflow-hidden">
               <div className="px-4 pt-3 pb-2 border-b shrink-0">
                 <h3 className="text-[11px] font-semibold text-muted-foreground tracking-[0.08em] uppercase">
                   Last updated shipments
