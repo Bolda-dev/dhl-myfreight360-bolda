@@ -48,7 +48,7 @@ const DashboardLite = () => {
         </div>
 
         <main className="flex-1 min-h-0 overflow-hidden px-6 pb-6">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 py-2 animate-fade-in h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-5 grid-rows-1 gap-4 py-2 animate-fade-in h-full">
             {/* Left column: 3 slim KPIs on top, pie filling the rest */}
             <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
               <div className="grid grid-cols-3 gap-4 shrink-0">
