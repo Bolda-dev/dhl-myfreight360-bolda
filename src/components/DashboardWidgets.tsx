@@ -126,7 +126,7 @@ const ChartTooltip = ({
 //  Widget 1 — Documents by Consignee (donut + ranked legend)
 // =============================================================
 
-export const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | "minimal" }) => {
+export const DocumentsByConsignee = ({ variant = "full", title }: { variant?: "full" | "minimal"; title?: string }) => {
   const { data, total, top } = useMemo(() => {
     const counts: Record<string, number> = {};
     mockShipments.forEach((s) => {
@@ -194,7 +194,7 @@ export const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | 
   if (variant === "minimal") {
     return (
       <WidgetCard
-        title="Documents by Consignee"
+        title={title ?? "Documents by Consignee"}
         subtitle={`Top: ${top?.name ?? "—"}`}
       >
         <div className="h-full flex items-center justify-center py-2">
@@ -206,7 +206,7 @@ export const DocumentsByConsignee = ({ variant = "full" }: { variant?: "full" | 
 
   return (
     <WidgetCard
-      title="Documents by Consignee"
+      title={title ?? "Documents by Consignee"}
       subtitle={`Top consignee: ${top?.name ?? "—"}`}
       className="lg:col-span-2"
     >
@@ -495,11 +495,13 @@ export const ModeKPI = ({
   trendPct = 12.3,
   trendUp = true,
   variant = "full",
+  title: titleOverride,
 }: {
   mode: keyof typeof modeMeta;
   trendPct?: number;
   trendUp?: boolean;
   variant?: KPIVariant;
+  title?: string;
 }) => {
   const meta = modeMeta[mode];
   const Icon = meta.icon;
@@ -513,12 +515,13 @@ export const ModeKPI = ({
 
   const trend = useMemo(() => buildTrend(value, mode.length + 3), [value, mode]);
 
-  const title =
+  const title = titleOverride ?? (
     mode === "Air"
       ? "Air Shipments"
       : mode === "Ocean"
         ? "Ocean Shipments"
-        : "Road Shipments";
+        : "Road Shipments"
+  );
 
   if (variant === "compact") {
     return (
