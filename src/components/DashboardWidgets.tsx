@@ -214,7 +214,8 @@ export const DocumentsByConsignee = ({ variant = "full", title }: { variant?: "f
         hideHoverActions
       >
         <div className="h-full w-full flex flex-col gap-2 min-h-0 overflow-hidden">
-          <div className="relative flex-1 min-h-[220px] w-full" style={{ height: "100%" }}>
+          <div className="relative flex-1 min-h-[220px] w-full">
+            <div className="absolute inset-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -242,6 +243,7 @@ export const DocumentsByConsignee = ({ variant = "full", title }: { variant?: "f
                 />
               </PieChart>
             </ResponsiveContainer>
+            </div>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
                 Total
