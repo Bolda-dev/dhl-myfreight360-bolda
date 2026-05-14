@@ -515,12 +515,13 @@ export const ModeKPI = ({
 
   const trend = useMemo(() => buildTrend(value, mode.length + 3), [value, mode]);
 
-  const title = titleOverride ??
+  const title = titleOverride ?? (
     mode === "Air"
       ? "Air Shipments"
       : mode === "Ocean"
         ? "Ocean Shipments"
-        : "Road Shipments";
+        : "Road Shipments"
+  );
 
   if (variant === "compact") {
     return (
