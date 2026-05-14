@@ -63,13 +63,8 @@ const DashboardLite = () => {
 
             {/* Right: full-height table */}
             <div className="lg:col-span-3 min-h-0 flex flex-col bg-card border rounded-xl overflow-hidden">
-              <div className="px-4 pt-3 pb-2 border-b shrink-0">
-                <h3 className="text-[11px] font-semibold text-muted-foreground tracking-[0.08em] uppercase">
-                  Last updated shipments
-                </h3>
-              </div>
-              <div className="flex-1 min-h-0 overflow-auto">
-                <ShipmentTable />
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <ShipmentTable compactToolbar toolbarTitle="Last updated shipments" />
               </div>
             </div>
           </div>
