@@ -197,8 +197,47 @@ export const DocumentsByConsignee = ({ variant = "full", title }: { variant?: "f
         title={title ?? "Documents by Consignee"}
         subtitle={`Top: ${top?.name ?? "—"}`}
       >
-        <div className="h-full flex items-center justify-center py-2">
-          <Donut size={220} />
+        <div className="h-full w-full flex items-center justify-center py-2 min-h-[200px]">
+          <div className="relative w-full h-full max-w-full max-h-full aspect-square mx-auto">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="68%"
+                  outerRadius="96%"
+                  paddingAngle={1.5}
+                  stroke="hsl(var(--card))"
+                  strokeWidth={2}
+                  isAnimationActive={false}
+                >
+                  {data.map((_, i) => (
+                    <Cell key={i} fill={PIE_PALETTE[i % PIE_PALETTE.length]} />
+                  ))}
+                </Pie>
+                <ReTooltip
+                  content={<ChartTooltip />}
+                  wrapperStyle={{ zIndex: 60, outline: "none" }}
+                  allowEscapeViewBox={{ x: true, y: true }}
+                  cursor={false}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div className="text-[10px] font-medium text-muted-foreground tracking-[0.12em] uppercase">
+                Total
+              </div>
+              <div className="text-3xl font-bold text-foreground tabular-nums leading-tight">
+                {total.toLocaleString()}
+              </div>
+              <div className="text-[10px] text-muted-foreground mt-0.5">
+                {data.length} consignees
+              </div>
+            </div>
+          </div>
         </div>
       </WidgetCard>
     );
