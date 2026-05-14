@@ -47,11 +47,13 @@ const WidgetCard = ({
   title,
   subtitle,
   className = "",
+  hideHoverActions = false,
   children,
 }: {
   title: string;
   subtitle?: string;
   className?: string;
+  hideHoverActions?: boolean;
   children: React.ReactNode;
 }) => (
   <div
@@ -68,6 +70,7 @@ const WidgetCard = ({
           </p>
         )}
       </div>
+      {!hideHoverActions && (
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <button className="h-6 w-6 rounded-md flex items-center justify-center text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
           <RefreshCw className="w-3 h-3" />
@@ -79,6 +82,7 @@ const WidgetCard = ({
           <MoreHorizontal className="w-3 h-3" />
         </button>
       </div>
+      )}
     </div>
     <div className="flex-1 min-h-0 px-4 pb-4">{children}</div>
   </div>
