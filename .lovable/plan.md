@@ -1,85 +1,53 @@
-## Goal
+## Dashboard Lite — תוכנית
 
-Make the shipment detail popup the single source of truth — wider, with scrollable tabs, a consistent typographic system across every tab, and deep-linkable from each table action icon (Exceptions, Containers, Invoices, Tags, Remarks) into the matching tab with full data and editing.
+יצירת גרסת "Lite" של הדשבורד בנתיב חדש, ללא שינוי בדשבורד הקיים. שימוש בקומפוננטות הקיימות בלבד (כפי שהוגדר במסך הרפרנס).
 
----
+### מבנה העמוד (לפי הוויירפריים)
 
-## 1. Wider popup + scrollable tabs
+```text
+┌─────────────┬─────────────┬─────────────┬───────────────────────┐
+│ Air in      │ Ocean in    │ Road in     │                       │
+│ Transit     │ Transit     │ Transit     │  Shipments by product │
+│ (compact)   │ (compact)   │ (compact)   │  (donut minimal)      │
+├─────────────┴─────────────┴─────────────┤                       │
+│                                         │                       │
+│   Last updated shipments (table)        │                       │
+│                                         │                       │
+└─────────────────────────────────────────┴───────────────────────┘
+```
 
-`src/components/ShipmentDetailPopup.tsx`
+### נתיב חדש
 
-- Bump dialog width: `max-w-[1400px] w-[97vw]` (was `max-w-[800px] w-[95vw]`), keep `h-[85vh]`.
-- Wrap `TabsList` in a horizontal scroll container so tabs never clip on narrow screens:
-  - Outer: `relative shrink-0 border-b`.
-  - Inner scroller: `overflow-x-auto scrollbar-thin` + `whitespace-nowrap`.
-  - `TabsList` becomes `inline-flex w-max` (no longer forced to 100%) so triggers keep their natural width and overflow horizontally instead of wrapping/truncating.
-- Add subtle left/right fade gradients on the scroller edges as visual hint that more tabs exist.
+- `/dashboard-lite` — נוסף ב-`src/App.tsx` ליד הנתיב הקיים `/dashboard`.
+- הדשבורד הרגיל ב-`/dashboard` נשאר ללא שינוי.
 
-## 2. Tab content style system (visual + spec consistency)
+### קובץ חדש: `src/pages/DashboardLite.tsx`
 
-Introduce a small set of internal helper components inside `ShipmentDetailPopup.tsx` so every tab uses the same heading hierarchy, spacing, and weights:
+- מבוסס על מבנה `src/pages/Dashboard.tsx`: `Navbar` + כותרת "Dashboard Lite" + אותו toolbar (Search / Filter / widgets count / Manage / Download / Refresh).
+- הגריד מורכב מקומפוננטות קיימות מ-`DashboardWidgets.tsx` בלבד — ללא קומפוננטות חדשות.
 
-- `<TabHeader title subtitle action?>` — H3 title (`text-sm font-semibold text-foreground`), 11px muted subtitle, optional right-aligned action button. Used at the top of every tab.
-- `<SectionTitle>` — uppercase 10px, `font-semibold text-muted-foreground tracking-wider`, 12px bottom margin. Replaces the ad-hoc h3s currently scattered across tabs.
-- `<DataField label value>` — uppercase 10px label + 13px medium foreground value, used in cards/grids.
-- Standard tab padding: `p-6 space-y-6`.
-- Standard card surface: `bg-muted/30 rounded-lg p-4`.
+### שימוש בקומפוננטות קיימות
 
-Apply across all tabs:
+מ-`src/components/DashboardWidgets.tsx` ייוצאו 3 הקומפוננטות הקיימות (`ModeKPI`, `DocumentsByConsignee`, ו-helper לטבלה אחרונה אם נדרש) כדי שניתן יהיה להרכיב אותן בעמוד ה-Lite. אין שינוי לוגי בקומפוננטות עצמן — רק תוספת `export`.
 
-- General: keep current sections, swap headings/cards to the helpers.
-- Flights / Voyage: TabHeader ("Trip Itinerary" / leg count subtitle), unify leg cards, use SectionTitle for "Schedule".
-- Events: TabHeader ("Events Timeline"), normalize event row typography (title 13px medium, body 11px muted).
-- Invoices, Tags, Remarks, Containers/Packages: same TabHeader + Section pattern.
-- ContainersTab.tsx: replace its custom header bar with the shared `TabHeader` (title "Containers" / "Packages", subtitle "{n} container(s)", action = Table/Journey toggle).
+מיפוי וויירפריים → קומפוננטה קיימת:
+- "Air in Transit" → `<ModeKPI mode="Air" variant="compact" />`
+- "Ocean in Transit" → `<ModeKPI mode="Ocean" variant="compact" />`
+- "Road in Transit" → `<ModeKPI mode="Rail" variant="compact" />`
+- "Shipments by product" (דונאט בלבד, ללא Legend) → `<DocumentsByConsignee variant="minimal" />`
+- "Last updated shipments" → אותה הטבלה: `<ShipmentTable />` הקיימת (מציגה את אותם נתונים; הטבלה כבר תומכת ב-Column Manager כדי להציג רק File Number / Consignee / Total Weight / Last Status / Last update אם המשתמש ירצה לצמצם).
 
-## 3. Deep-link table icons → popup tab
+### Layout
 
-Currently the action icons open separate dialogs (`InvoicesDialog`, `TagsDialog`, `RemarksDialog`, `EventsDialog`). Replace this with a single flow that opens `ShipmentDetailPopup` already focused on the right tab and in edit mode where applicable.
+- Grid 4 עמודות: שורה 1 — 3 KPI compact + דונאט minimal (תופס 1 עמודה, `row-span-2` כדי לעמוד לצד הטבלה).
+- שורה 2 — `ShipmentTable` תופסת `col-span-3`.
 
-`ShipmentDetailPopup.tsx`
+### Navigation
 
-- Accept a new prop `initialTab?: string` and pass it as `defaultValue` (or use controlled `value`/`onValueChange`) on `<Tabs>`.
-- Map: `exceptions` → `general` (popup auto-scrolls to the Exceptions banner via a ref), `containers` → `containers`, `invoices` → `invoices`, `tags` → `tags`, `remarks` → `remarks`.
+- ללא הוספת פריט נוסף ב-Navbar בשלב הזה (לפי ההנחיה לשמור על המבנה הקיים). הגישה לעמוד דרך URL ישיר `/dashboard-lite`. אם תרצי קישור ב-Nav — אוסיף לאחר אישור.
 
-`ShipmentTable.tsx`
+### קבצים שיושפעו
 
-- Remove the four standalone dialogs (`InvoicesDialog`, `TagsDialog`, `RemarksDialog`, `EventsDialog`) from the render tree and their state hooks.
-- Replace with one piece of state: `popup: { shipment: Shipment; tab: string } | null`.
-- Rewire helpers:
-  - `openDetail(s)` → `{ shipment: s, tab: "general" }`
-  - `openEvents(s)` → `{ shipment: s, tab: "general" }` (with focus on exceptions)
-  - `openInvoices(s)` → `{ shipment: s, tab: "invoices" }`
-  - `openTags(s)` → `{ shipment: s, tab: "tags" }`
-  - `openRemarks(s)` → `{ shipment: s, tab: "remarks" }`
-  - New `openContainers(s)` → `{ shipment: s, tab: "containers" }`; wire the existing `Cnt.` icon (currently a dumb span) to a button.
-
-## 4. Editing inside the popup tabs
-
-Move the editing logic from the legacy dialogs into the popup tabs.
-
-- Tags tab: existing tag chips + an "Add tag" combobox seeded from `AVAILABLE_TAGS` and a remove-x on each chip. Saves through a callback (`onTagsChange`) propagated up to `ShipmentTable` so `setShipments` updates.
-- Remarks tab: list of timestamped remark cards + a textarea + "Add remark" button. Calls `onRemarkAdd` upward.
-- Invoices tab: read-only list (matches current dialog) — no edit needed in this iteration.
-- Exceptions: read-only banner already renders in General; opening from icon scrolls to it.
-
-Pass `onTagsChange` and `onRemarkAdd` props from `ShipmentTable` into `ShipmentDetailPopup` so the existing `handleTagsSave` / `handleRemarkAdd` reducers keep working.
-
-## 5. Cleanup
-
-- Delete unused state (`invoiceShipment`, `eventsShipment`, `tagsShipment`, `remarksShipment`) and dialog imports from `ShipmentTable.tsx`.
-- Keep the dialog component files in the repo for now (no breakage if referenced elsewhere) but stop importing them from the table.
-
----
-
-## Files touched
-
-- `src/components/ShipmentDetailPopup.tsx` — width, scrollable tabs, helper components, `initialTab`, edit handlers, exceptions scroll target.
-- `src/components/ContainersTab.tsx` — adopt shared `TabHeader` / `SectionTitle`.
-- `src/components/ShipmentTable.tsx` — collapse 4 dialogs into one popup, deep-link icons, wire edit callbacks, add `openContainers`.
-
-## Out of scope
-
-- No data model changes.
-- No changes to the table layout itself other than icon click behavior.
-- Invoices editing UI (kept read-only this round).
+1. `src/components/DashboardWidgets.tsx` — תוספת `export` ל-`ModeKPI` ו-`DocumentsByConsignee` (ללא שינוי התנהגותי).
+2. `src/pages/DashboardLite.tsx` — חדש.
+3. `src/App.tsx` — הוספת `<Route path="/dashboard-lite" element={<DashboardLite />} />`.
