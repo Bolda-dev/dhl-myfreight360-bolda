@@ -591,7 +591,7 @@ export const ModeKPI = ({
 
   if (variant === "compact") {
     return (
-      <WidgetCard title={title}>
+      <WidgetCard title={title} hideHoverActions>
         <div className="h-full flex flex-col justify-between">
           <div className="flex items-center gap-2">
             <div
@@ -601,7 +601,7 @@ export const ModeKPI = ({
               <Icon className="w-4 h-4" style={{ color: meta.color }} />
             </div>
             <span className="text-[11px] font-medium text-muted-foreground">
-              {meta.label}
+              {title}
             </span>
           </div>
           <div className="mt-2">
